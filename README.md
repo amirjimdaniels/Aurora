@@ -1,0 +1,1 @@
+We are here to adjust to the modern times. Given that the average person cannot read, we have opted to remove all useful information from our Readme. Our users agreed to this change in our updated terms of service, which again, they did not read.
