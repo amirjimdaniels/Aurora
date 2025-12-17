@@ -1,9 +1,13 @@
-import Message from "./Message.tsx";
+import Navbar from "./assets/components/Navbar.jsx";
 
-function App()
-{
-  return <div><Message></Message></div>;
+const App = () => {
+  return (
+    <div className = 'container'>
+      <Navbar />
+      {/* Other components and content */}
+    </div>
+  );
 
 }
 
-export default App;
+  export default App;
