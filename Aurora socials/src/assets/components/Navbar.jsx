@@ -4,11 +4,22 @@ import './Navbar.css'
 const Navbar = () => {
   const [open, setOpen] = useState(false) // mobile menu
   const [searchOpen, setSearchOpen] = useState(false)
+  const [imgError, setImgError] = useState(false)
 
   return (
     <nav className='navbar' role="navigation" aria-label="Main navigation">
-      <div className="left">
-        <img src="/aurora.png" alt="Aurora logo" className='logo' />
+      <div className="left" style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0}}>
+        {!imgError ? (
+          <img
+            src="/Aurorav3.png"
+            alt="Aurora v3 logo"
+            className='logo'
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <div className="logo-fallback">Aurora</div>
+        )}
+        <div className="logo-text">Aurora</div>
       </div>
 
       <button
