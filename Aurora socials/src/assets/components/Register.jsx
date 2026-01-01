@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect} from "react";
-import {facheck, faTimes, faInfoCircle} from "@fortawesome/free-solid-svg-icons";
+import { faCheck, faTimes, faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "./Register.css";
 
@@ -60,12 +60,12 @@ const Register = () => {
          <label htmlFor="username">
             Username:
             <span className={validName ? "valid" : "hide"}>
-                <FontAwesomeIcon icon={facheck} />
+                <FontAwesomeIcon icon={faCheck} />
             </span>
             <span className={validName || !user ? "hide" : "invalid"}>
                 <FontAwesomeIcon icon={faTimes} />
             </span>
-            <FontAwesomeIcon icon={facheck} className={validName ? "valid" : "hide"} />    
+            <FontAwesomeIcon icon={faCheck} className={validName ? "valid" : "hide"} />    
             </label>
             <input
                 type="text"
@@ -89,7 +89,7 @@ const Register = () => {
             <label htmlFor="password">
                 Password:
                 <span className={validPwd ? "valid" : "hide"}> 
-                    <FontAwesomeIcon icon={facheck} />
+                    <FontAwesomeIcon icon={faCheck} />
                 </span> 
                 <span className={validPwd || !pwd ? "hide" : "invalid"}>
                     <FontAwesomeIcon icon={faTimes} />
@@ -121,7 +121,7 @@ const Register = () => {
             <label htmlFor="confirm_pwd">
                 Confirm Password:
                 <span className={validMatch && matchpwd ? "valid" : "hide"}>
-                    <FontAwesomeIcon icon={facheck} />
+                    <FontAwesomeIcon icon={faCheck} />
                 </span> 
                 <span className={validMatch || !matchpwd ? "hide" : "invalid"}> 
                     <FontAwesomeIcon icon={faTimes} />  

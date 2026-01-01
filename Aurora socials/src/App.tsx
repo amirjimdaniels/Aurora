@@ -1,6 +1,7 @@
 import React from 'react';
 import Navbar from "./assets/components/Navbar.jsx";
-import Register from "./assets/Register.jsx";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import Register from "./assets/components/Register.jsx";
 
 
 function Home() {
@@ -23,15 +24,24 @@ function Home() {
 
 
 
+
 const App = () => {
   return (
-    <>
-      <Navbar />
-      <div className='container' style={{ paddingTop: '60px' }}>
-        <Home />
-        <Register />
-      </div>
-    </>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Register />} />
+        <Route path="/home" element={
+          <>
+            <Navbar />
+            <div className='container' style={{ paddingTop: '60px' }}>
+              <Home />
+            </div>
+          </>
+        } />
+        {/* Add more routes as needed */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Router>
   );
 }
 
