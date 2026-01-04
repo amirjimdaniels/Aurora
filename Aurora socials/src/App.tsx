@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import Register from "./assets/components/Register.jsx";
 
 
+
 function Home() {
   return (
     <div style={{ padding: '6rem 1rem 1rem 1rem', textAlign: 'center' }}>
