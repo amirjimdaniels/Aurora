@@ -16,7 +16,30 @@ app.use(cors({
     origin: 'http://localhost:5173', // Change to 'http://localhost:5174' if your frontend runs on that port
   credentials: true
 }));
+
 app.use(bodyParser.json());
+
+// Get posts for feed
+app.get('/api/posts', async (req, res) => {
+  try {
+    const posts = await prisma.post.findMany({
+      include: {
+        author: { select: { username: true } },
+        likes: true,
+        comments: {
+          include: { author: { select: { username: true } } }
+        },
+        savedBy: true
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 5
+    });
+    res.json(posts);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch posts' });
+  }
+});
 
 
 // Registration endpoint using Prisma

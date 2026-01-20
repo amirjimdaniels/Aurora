@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import "./Register.css";
 import axios from "../../api/axios.js";
 
@@ -7,6 +8,7 @@ const LOGIN_URL = '/api/login';
 const SignIn = () => {
     const userRef = useRef();
     const errRef = useRef();
+    const navigate = useNavigate();
 
     const [user, setUser] = useState('');
     const [pwd, setPwd] = useState('');
@@ -33,6 +35,7 @@ const SignIn = () => {
             );
             console.log(response.data);
             setSuccess(true);
+            navigate("/feed");
         } catch (err) {
             if (!err?.response) {
                 setErrMsg('No Server Response');

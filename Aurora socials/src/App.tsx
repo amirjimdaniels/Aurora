@@ -1,8 +1,10 @@
 import React from 'react';
 import Navbar from "./assets/components/Navbar.jsx";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+
 import Register from "./assets/components/Register.jsx";
 import SignIn from "./assets/components/SignIn.jsx";
+import LandingPage from "./assets/components/LandingPage.jsx";
 
 
 
@@ -38,6 +40,12 @@ const App = () => {
             <div className='container' style={{ paddingTop: '60px' }}>
               <Home />
             </div>
+          </>
+        } />
+        <Route path="/feed" element={
+          <>
+            <Navbar />
+            <LandingPage />
           </>
         } />
         <Route path="/signin" element={<SignIn />} />
