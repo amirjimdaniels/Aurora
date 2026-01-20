@@ -2,6 +2,7 @@ import React from 'react';
 import Navbar from "./assets/components/Navbar.jsx";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Register from "./assets/components/Register.jsx";
+import SignIn from "./assets/components/SignIn.jsx";
 
 
 
@@ -39,6 +40,7 @@ const App = () => {
             </div>
           </>
         } />
+        <Route path="/signin" element={<SignIn />} />
         {/* Add more routes as needed */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect} from "react";
+import { Link } from "react-router-dom";
 import { faCheck, faTimes, faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "./Register.css";
@@ -6,7 +7,7 @@ import axios from "../../api/axios.js";
 
 const USER_REGEX = /^[A-z][A-z0-9-_]{3,23}$/;
 const PWD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%]).{8,24}$/;
-const REGISTER_URL = '/register';
+const REGISTER_URL = '/api/register';
 
 const Register = () => {
     const userRef = useRef();
@@ -63,13 +64,14 @@ const Register = () => {
             return;
         }   
         try {
-            const response = await axios.post(REGISTER_URL, JSON.stringify({ user, pwd }), 
+            const response = await axios.post(REGISTER_URL, JSON.stringify({ username: user, password: pwd }), 
             { headers: { 'Content-Type': 'application/json' },
             withCredentials: true });
             console.log(response.data);
             console.log(response.accessToken);
             console.log(JSON.stringify(response))
             setSuccess(true);
+            
         }
 
         catch (err) {
@@ -90,8 +92,7 @@ const Register = () => {
          {success ? (
             <section>
                 <h1>Success!</h1>      
-                #TODO: link to sign in page REACT
-                <p><a href="#">Sign In</a></p>
+                <p><Link to="/signin">Sign In</Link></p>
             </section>
          ) : (
         
@@ -190,7 +191,7 @@ const Register = () => {
             Already registered?<br />
             <span className="line">
                 {/*put router link here*/}
-                <a href="#">Sign In</a>
+                <Link to="/signin">Sign In</Link>
             </span>
         </p>
         </section>
