@@ -199,3 +199,10 @@ export default defineConfig([
   },
 ])
 ```
+<img width="988" height="893" alt="PlantuML" src="https://github.com/user-attachments/assets/b5589b3f-fc1e-42ef-81c4-d43354b60bee" />
+
+<img width="1873" height="732" alt="Backend uml" src="https://github.com/user-attachments/assets/e5f5c8cd-91cb-4419-903b-579f41154018" />
+
+
+
+
