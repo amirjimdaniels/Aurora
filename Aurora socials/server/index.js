@@ -8,6 +8,10 @@ const prisma = new PrismaClient();
 import postsRouter from './routes/posts.js';
 import savedPostsRouter from './routes/savedPosts.js';
 import commentsRouter from './routes/comments.js';
+import usersRouter from './routes/users.js';
+import friendsRouter from './routes/friends.js';
+import followRouter from './routes/follow.js';
+import messagesRouter from './routes/messages.js';
 
 
 const app = express();
@@ -21,7 +25,9 @@ app.use(cors({
   credentials: true
 }));
 
-app.use(bodyParser.json());
+// Increase body size limit for base64 images
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
 // Use posts router for all /api/posts endpoints
 
@@ -29,6 +35,10 @@ app.use(bodyParser.json());
 app.use('/api/posts', postsRouter);
 app.use('/api/comments', commentsRouter);
 app.use('/api/savedPosts', savedPostsRouter);
+app.use('/api/users', usersRouter);
+app.use('/api/friends', friendsRouter);
+app.use('/api/follow', followRouter);
+app.use('/api/messages', messagesRouter);
 
 
 // Registration endpoint using Prisma
