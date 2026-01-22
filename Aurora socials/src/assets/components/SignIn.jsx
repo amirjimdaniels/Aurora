@@ -34,6 +34,10 @@ const SignIn = () => {
                 }
             );
             console.log(response.data);
+            // Store userId in localStorage for like functionality
+            if (response.data && response.data.userId) {
+                localStorage.setItem('userId', response.data.userId);
+            }
             setSuccess(true);
             navigate("/feed");
         } catch (err) {

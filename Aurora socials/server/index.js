@@ -1,9 +1,13 @@
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
+
 import pkg from '@prisma/client';
 const { PrismaClient } = pkg;
 const prisma = new PrismaClient();
+import postsRouter from './routes/posts.js';
+import savedPostsRouter from './routes/savedPosts.js';
+import commentsRouter from './routes/comments.js';
 
 
 const app = express();
@@ -19,27 +23,12 @@ app.use(cors({
 
 app.use(bodyParser.json());
 
-// Get posts for feed
-app.get('/api/posts', async (req, res) => {
-  try {
-    const posts = await prisma.post.findMany({
-      include: {
-        author: { select: { username: true } },
-        likes: true,
-        comments: {
-          include: { author: { select: { username: true } } }
-        },
-        savedBy: true
-      },
-      orderBy: { createdAt: 'desc' },
-      take: 5
-    });
-    res.json(posts);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to fetch posts' });
-  }
-});
+// Use posts router for all /api/posts endpoints
+
+
+app.use('/api/posts', postsRouter);
+app.use('/api/comments', commentsRouter);
+app.use('/api/savedPosts', savedPostsRouter);
 
 
 // Registration endpoint using Prisma
@@ -75,7 +64,7 @@ app.post('/api/login', async (req, res) => {
     if (!user || user.password !== password) {
       return res.status(401).json({ success: false, message: 'Invalid credentials.' });
     }
-    return res.json({ success: true, message: 'Login successful!' });
+    return res.json({ success: true, message: 'Login successful!', userId: user.id });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ success: false, message: 'Server error.' });
