@@ -34,10 +34,11 @@ const SignIn = () => {
                 }
             );
             console.log(response.data);
-            // Store userId and username in localStorage for feed functionality
-            if (response.data && response.data.userId) {
+            // Store JWT token, userId and username in localStorage
+            if (response.data && response.data.token) {
+                localStorage.setItem('token', response.data.token);
                 localStorage.setItem('userId', response.data.userId);
-                localStorage.setItem('username', user);
+                localStorage.setItem('username', response.data.username);
             }
             setSuccess(true);
             navigate("/feed");
@@ -85,6 +86,23 @@ const SignIn = () => {
                         />
                         <button>Sign In</button>
                     </form>
+                    <p style={{ marginTop: '1rem', textAlign: 'center' }}>
+                        <span 
+                            onClick={() => navigate('/forgot-password')} 
+                            style={{ color: '#4a9eff', cursor: 'pointer', textDecoration: 'underline' }}
+                        >
+                            Forgot Password?
+                        </span>
+                    </p>
+                    <p style={{ marginTop: '1rem', textAlign: 'center' }}>
+                        Don't have an account?{' '}
+                        <span 
+                            onClick={() => navigate('/')} 
+                            style={{ color: '#4a9eff', cursor: 'pointer', textDecoration: 'underline' }}
+                        >
+                            Register
+                        </span>
+                    </p>
                 </section>
             )}
         </>

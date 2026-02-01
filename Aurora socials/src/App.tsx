@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 
 import Register from "./assets/components/Register.jsx";
 import SignIn from "./assets/components/SignIn.jsx";
+import ForgotPassword from "./assets/components/ForgotPassword.jsx";
 import LandingPage from "./assets/components/LandingPage.jsx";
 import SavedPosts from "./assets/components/SavedPosts.jsx";
 import Profile from "./assets/components/Profile.jsx";
@@ -83,6 +84,7 @@ const App = () => {
           </>
         } />
         <Route path="/signin" element={<SignIn />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         {/* Add more routes as needed */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
