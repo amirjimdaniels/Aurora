@@ -12,6 +12,11 @@ router.get('/', async (req, res) => {
       include: {
         author: { select: { id: true, username: true, profilePicture: true } },
         likes: true,
+        reactions: {
+          include: {
+            user: { select: { id: true, username: true } }
+          }
+        },
         comments: {
           include: { 
             author: { select: { id: true, username: true, profilePicture: true } },
@@ -48,6 +53,11 @@ router.get('/:id', async (req, res) => {
       include: {
         author: { select: { id: true, username: true, profilePicture: true } },
         likes: true,
+        reactions: {
+          include: {
+            user: { select: { id: true, username: true } }
+          }
+        },
         comments: {
           include: { 
             author: { select: { id: true, username: true, profilePicture: true } },
@@ -138,8 +148,58 @@ router.delete('/:id', async (req, res) => {
     await prisma.comment.deleteMany({ where: { postId } });
     await prisma.like.deleteMany({ where: { postId } });
     await prisma.savedPost.deleteMany({ where: { postId } });
+    await prisma.reaction.deleteMany({ where: { postId } });
     await prisma.post.delete({ where: { id: postId } });
     return res.json({ success: true, message: 'Post deleted.' });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ success: false, message: 'Server error.' });
+  }
+});
+
+// Add reaction to a post
+router.post('/:id/react', async (req, res) => {
+  const postId = parseInt(req.params.id, 10);
+  const { userId, emoji, label, category } = req.body;
+  if (!userId || !emoji || !label || !category) {
+    return res.status(400).json({ success: false, message: 'User ID, emoji, label, and category required.' });
+  }
+  try {
+    // Check if user already reacted with this emoji
+    const existingReaction = await prisma.reaction.findUnique({
+      where: { userId_postId_emoji: { userId, postId, emoji } }
+    });
+    if (existingReaction) {
+      // Remove reaction if it already exists (toggle off)
+      await prisma.reaction.delete({
+        where: { id: existingReaction.id }
+      });
+      return res.json({ success: true, action: 'removed' });
+    } else {
+      // Add new reaction
+      await prisma.reaction.create({
+        data: { userId, postId, emoji, label, category }
+      });
+      return res.json({ success: true, action: 'added' });
+    }
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ success: false, message: 'Server error.' });
+  }
+});
+
+// Remove all reactions from a user on a post (clear all)
+router.delete('/:id/reactions', async (req, res) => {
+  const postId = parseInt(req.params.id, 10);
+  const { userId } = req.body;
+  if (!userId) {
+    return res.status(400).json({ success: false, message: 'User ID required.' });
+  }
+  try {
+    await prisma.reaction.deleteMany({
+      where: { userId, postId }
+    });
+    return res.json({ success: true, message: 'All reactions removed.' });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ success: false, message: 'Server error.' });

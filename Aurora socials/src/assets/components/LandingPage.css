@@ -19,26 +19,48 @@
   background: #23232a;
   border-radius: 24px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.25);
-  padding: 2.5rem 2rem 2rem 2rem;
-  max-width: 700px;
+  padding: 1.5rem;
+  max-width: 600px;
   width: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
   min-height: 60vh;
   box-sizing: border-box;
 }
 
 .centered-bg {
   min-height: 100dvh;
-  width: 100vw;
+  width: 100%;
   display: flex;
   justify-content: center;
   align-items: flex-start;
   background: #18181b;
-  padding-top: max(env(safe-area-inset-top, 0px), 2.5rem);
-  padding-bottom: max(env(safe-area-inset-bottom, 0px), 2.5rem);
+  padding-top: 90px; /* Account for fixed navbar */
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 1.5rem);
   box-sizing: border-box;
+}
+
+/* Hide sidebars on smaller screens */
+@media (max-width: 1200px) {
+  .centered-bg > div:first-child,
+  .centered-bg > div:last-child {
+    display: none !important;
+  }
+  .centered-bg {
+    padding: 1rem;
+  }
+  .feed-container {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .feed-container {
+    padding: 1rem;
+    border-radius: 16px;
+  }
+}
+
 /* Feed title styles */
 .feed-title {
   color: #fff;
@@ -47,7 +69,6 @@
   font-weight: 700;
   text-align: center;
   word-break: break-word;
-}
 }
 
 .post-card {

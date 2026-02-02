@@ -25,7 +25,7 @@ const SALT_ROUNDS = 10;
 // No more in-memory user store; using Prisma/SQLite
 
 app.use(cors({
-    origin: 'http://localhost:5173', // Change to 'http://localhost:5174' if your frontend runs on that port
+  origin: ['http://localhost:5173', 'http://localhost:5174'],
   credentials: true
 }));
 

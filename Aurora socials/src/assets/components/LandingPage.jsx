@@ -3,7 +3,7 @@ import axios from "../../api/axios.js";
 import "./LandingPage.css";
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaRegThumbsUp, FaThumbsUp, FaRegCommentDots, FaBookmark, FaImage, FaTimes, FaTrash, FaShare, FaLink, FaCheck, FaSmile } from "react-icons/fa";
+import { FaRegThumbsUp, FaThumbsUp, FaRegCommentDots, FaBookmark, FaImage, FaTimes, FaTrash, FaShare, FaLink, FaCheck, FaSmile, FaNewspaper, FaFire, FaUserFriends, FaHashtag, FaCog, FaRegBookmark, FaHome, FaUser, FaBell } from "react-icons/fa";
 import { IoCloseCircle, IoSend, IoChatbubbleEllipses } from "react-icons/io5";
 import MessagesPanel from "./MessagesPanel.jsx";
 
@@ -27,9 +27,228 @@ const LandingPage = () => {
   const [shareModal, setShareModal] = useState(null); // postId or null
   const [linkCopied, setLinkCopied] = useState(false);
   const [messagesOpen, setMessagesOpen] = useState(false);
+  const [showFeelingPicker, setShowFeelingPicker] = useState(false);
+  const [selectedFeeling, setSelectedFeeling] = useState(null); // { emoji, label, category }
+  const [feelingSearchQuery, setFeelingSearchQuery] = useState("");
+  const [activeCategory, setActiveCategory] = useState("feelings");
+  const [showPostReactionPicker, setShowPostReactionPicker] = useState(null); // postId or null
+  const [postReactionSearch, setPostReactionSearch] = useState("");
+  const [postReactionCategory, setPostReactionCategory] = useState("feelings");
+  const [activeTab, setActiveTab] = useState("foryou"); // foryou, following, trending
 
-  // Get username from localStorage
+  // Get userId and username from localStorage (needed early for quickLinks)
+  const userId = Number(localStorage.getItem('userId'));
   const username = localStorage.getItem('username') || 'User';
+
+  // Trending topics data
+  const trendingTopics = [
+    { tag: "AuroraSocial", posts: "12.4K", category: "Technology" },
+    { tag: "Gaming", posts: "8.2K", category: "Entertainment" },
+    { tag: "Photography", posts: "5.7K", category: "Art" },
+    { tag: "Music", posts: "4.1K", category: "Entertainment" },
+    { tag: "Coding", posts: "3.8K", category: "Technology" },
+  ];
+
+  // News/updates data
+  const newsItems = [
+    { title: "New reaction features are here! 🎉", time: "2h ago", type: "update" },
+    { title: "Weekend photo challenge starts now", time: "5h ago", type: "event" },
+    { title: "Community guidelines updated", time: "1d ago", type: "announcement" },
+  ];
+
+  // Quick links for left sidebar
+  const quickLinks = [
+    { icon: <FaHome />, label: "Home", path: "/landing", active: true },
+    { icon: <FaUser />, label: "Profile", path: `/profile/${userId}` },
+    { icon: <FaUserFriends />, label: "Friends", path: "/friends" },
+    { icon: <FaRegBookmark />, label: "Saved", path: "/saved" },
+    { icon: <FaBell />, label: "Notifications", path: "/notifications" },
+    { icon: <FaCog />, label: "Settings", path: "/settings" },
+  ];
+
+  // Feelings and Activities data with emojis
+  const feelingsData = {
+    feelings: [
+      { emoji: "😊", label: "happy" },
+      { emoji: "😍", label: "loved" },
+      { emoji: "🥰", label: "grateful" },
+      { emoji: "😎", label: "cool" },
+      { emoji: "🤩", label: "excited" },
+      { emoji: "😌", label: "relaxed" },
+      { emoji: "🥳", label: "celebratory" },
+      { emoji: "😤", label: "determined" },
+      { emoji: "😢", label: "sad" },
+      { emoji: "😔", label: "disappointed" },
+      { emoji: "😫", label: "tired" },
+      { emoji: "😴", label: "sleepy" },
+      { emoji: "🤒", label: "sick" },
+      { emoji: "😡", label: "angry" },
+      { emoji: "🤔", label: "thoughtful" },
+      { emoji: "😅", label: "awkward" },
+      { emoji: "🙃", label: "silly" },
+      { emoji: "😇", label: "blessed" },
+      { emoji: "🥺", label: "emotional" },
+      { emoji: "😤", label: "frustrated" },
+      { emoji: "🤗", label: "thankful" },
+      { emoji: "😏", label: "confident" },
+      { emoji: "🥱", label: "bored" },
+      { emoji: "😬", label: "nervous" },
+      { emoji: "🫠", label: "overwhelmed" },
+      { emoji: "💪", label: "strong" },
+      { emoji: "❤️‍🔥", label: "passionate" },
+      { emoji: "🫶", label: "supportive" },
+      { emoji: "✨", label: "magical" },
+      { emoji: "💫", label: "dizzy" }
+    ],
+    activities: [
+      { emoji: "🎮", label: "playing games" },
+      { emoji: "📺", label: "watching TV" },
+      { emoji: "🎬", label: "watching a movie" },
+      { emoji: "🎵", label: "listening to music" },
+      { emoji: "📚", label: "reading" },
+      { emoji: "✍️", label: "writing" },
+      { emoji: "💻", label: "coding" },
+      { emoji: "🎨", label: "creating art" },
+      { emoji: "📷", label: "taking photos" },
+      { emoji: "🏃", label: "exercising" },
+      { emoji: "🧘", label: "meditating" },
+      { emoji: "🍳", label: "cooking" },
+      { emoji: "🍽️", label: "eating" },
+      { emoji: "☕", label: "drinking coffee" },
+      { emoji: "🍵", label: "drinking tea" },
+      { emoji: "🎉", label: "celebrating" },
+      { emoji: "✈️", label: "traveling" },
+      { emoji: "🚗", label: "driving" },
+      { emoji: "🛒", label: "shopping" },
+      { emoji: "💼", label: "working" },
+      { emoji: "📱", label: "scrolling" },
+      { emoji: "🎤", label: "singing" },
+      { emoji: "💃", label: "dancing" },
+      { emoji: "🎸", label: "playing music" },
+      { emoji: "🏊", label: "swimming" },
+      { emoji: "⚽", label: "playing sports" },
+      { emoji: "🎯", label: "focusing" },
+      { emoji: "🧹", label: "cleaning" },
+      { emoji: "🛋️", label: "relaxing" },
+      { emoji: "😴", label: "sleeping" }
+    ],
+    eating: [
+      { emoji: "🍕", label: "pizza" },
+      { emoji: "🍔", label: "burger" },
+      { emoji: "🍟", label: "fries" },
+      { emoji: "🌮", label: "tacos" },
+      { emoji: "🍜", label: "noodles" },
+      { emoji: "🍣", label: "sushi" },
+      { emoji: "🥗", label: "salad" },
+      { emoji: "🍝", label: "pasta" },
+      { emoji: "🥪", label: "sandwich" },
+      { emoji: "🍦", label: "ice cream" },
+      { emoji: "🎂", label: "cake" },
+      { emoji: "🍩", label: "donuts" },
+      { emoji: "🍪", label: "cookies" },
+      { emoji: "🍫", label: "chocolate" },
+      { emoji: "🥤", label: "drinks" }
+    ],
+    celebrating: [
+      { emoji: "🎂", label: "birthday" },
+      { emoji: "🎄", label: "Christmas" },
+      { emoji: "🎃", label: "Halloween" },
+      { emoji: "💝", label: "Valentine's Day" },
+      { emoji: "🎊", label: "New Year" },
+      { emoji: "🎓", label: "graduation" },
+      { emoji: "💍", label: "engagement" },
+      { emoji: "👶", label: "new baby" },
+      { emoji: "🏠", label: "new home" },
+      { emoji: "💼", label: "new job" },
+      { emoji: "🏆", label: "achievement" },
+      { emoji: "❤️", label: "anniversary" },
+      { emoji: "🎉", label: "party" },
+      { emoji: "🥂", label: "success" },
+      { emoji: "🌟", label: "milestone" }
+    ]
+  };
+
+  // Filter feelings based on search query
+  const getFilteredFeelings = () => {
+    const currentData = feelingsData[activeCategory] || [];
+    if (!feelingSearchQuery.trim()) return currentData;
+    return currentData.filter(item =>
+      item.label.toLowerCase().includes(feelingSearchQuery.toLowerCase())
+    );
+  };
+
+  // Handle feeling selection
+  const handleFeelingSelect = (item) => {
+    setSelectedFeeling({ ...item, category: activeCategory });
+    setShowFeelingPicker(false);
+    setFeelingSearchQuery("");
+  };
+
+  // Clear selected feeling
+  const clearFeeling = () => {
+    setSelectedFeeling(null);
+  };
+
+  // Handle post reaction
+  const handlePostReaction = async (postId, reaction) => {
+    if (!userId) return;
+    try {
+      await axios.post(`/api/posts/${postId}/react`, {
+        userId,
+        emoji: reaction.emoji,
+        label: reaction.label,
+        category: postReactionCategory
+      });
+      setShowPostReactionPicker(null);
+      setPostReactionSearch("");
+      // Refresh posts to show updated reactions
+      const updated = await axios.get("/api/posts");
+      setPosts(updated.data);
+    } catch (err) {
+      console.error('Failed to add reaction:', err);
+    }
+  };
+
+  // Get filtered reactions for post picker
+  const getFilteredPostReactions = () => {
+    const currentData = feelingsData[postReactionCategory] || [];
+    if (!postReactionSearch.trim()) return currentData;
+    return currentData.filter(item =>
+      item.label.toLowerCase().includes(postReactionSearch.toLowerCase())
+    );
+  };
+
+  // Get reaction summary for a post
+  const getReactionSummary = (reactions) => {
+    if (!reactions || reactions.length === 0) return [];
+    
+    const reactionCounts = reactions.reduce((acc, reaction) => {
+      const key = reaction.emoji;
+      if (!acc[key]) {
+        acc[key] = {
+          emoji: reaction.emoji,
+          label: reaction.label,
+          count: 0,
+          users: []
+        };
+      }
+      acc[key].count++;
+      acc[key].users.push(reaction.user.username);
+      return acc;
+    }, {});
+    
+    return Object.values(reactionCounts)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 3); // Show top 3 reactions
+  };
+
+  // Check if user has reacted with specific emoji
+  const hasUserReacted = (reactions, emoji) => {
+    if (!reactions || !userId) return false;
+    return reactions.some(reaction => 
+      reaction.userId === userId && reaction.emoji === emoji
+    );
+  };
 
   // Handle file selection
   const handleFileSelect = (e) => {
@@ -53,15 +272,28 @@ const LandingPage = () => {
   // Create post handler
   const handleCreatePost = async () => {
     if (!userId || !newPostContent.trim()) return;
+    // Append feeling to content if selected
+    let finalContent = newPostContent;
+    if (selectedFeeling) {
+      const feelingText = activeCategory === 'feelings' 
+        ? `feeling ${selectedFeeling.emoji} ${selectedFeeling.label}`
+        : activeCategory === 'eating'
+        ? `eating ${selectedFeeling.emoji} ${selectedFeeling.label}`
+        : activeCategory === 'celebrating'
+        ? `celebrating ${selectedFeeling.emoji} ${selectedFeeling.label}`
+        : `${selectedFeeling.emoji} ${selectedFeeling.label}`;
+      finalContent = `${newPostContent}\n\n— ${feelingText}`;
+    }
     try {
       await axios.post('/api/posts', {
         userId,
-        content: newPostContent,
+        content: finalContent,
         mediaUrl: newPostMediaUrl.trim() || null
       });
       setNewPostContent("");
       setNewPostMediaUrl("");
       setMediaPreview(null);
+      setSelectedFeeling(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
       const updated = await axios.get("/api/posts");
       setPosts(updated.data);
@@ -97,9 +329,6 @@ const LandingPage = () => {
     window.addEventListener('profileUpdated', fetchUserProfile);
     return () => window.removeEventListener('profileUpdated', fetchUserProfile);
   }, []);
-
-  // Get userId from localStorage
-  const userId = Number(localStorage.getItem('userId'));
 
   // Like/unlike handler
   const handleLike = async (postId) => {
@@ -147,15 +376,159 @@ const LandingPage = () => {
     }
   };
 
-  if (loading) return <div>Loading posts...</div>;
-  if (error) return <div>{error}</div>;
+  if (loading) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#18181b', color: '#fff', paddingTop: '80px' }}>Loading posts...</div>;
+  if (error) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#18181b', color: '#ef4444', paddingTop: '80px' }}>{error}</div>;
 
   return (
-    <div className="centered-bg">
-      <div className="feed-container">
-        <h1 className="feed-title">Let's see what's up!</h1>
+    <div className="centered-bg" style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem', padding: '1.5rem', paddingTop: '0', maxWidth: '1400px', margin: '0 auto' }}>
+      
+      {/* Left Sidebar */}
+      <div style={{
+        width: '280px',
+        flexShrink: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '1rem',
+        position: 'sticky',
+        top: '90px',
+        height: 'fit-content',
+        maxHeight: 'calc(100vh - 110px)'
+      }}>
+        {/* Profile Card */}
+        <div style={{
+          background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)',
+          borderRadius: '16px',
+          padding: '1.25rem',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+            <div style={{
+              width: '50px', height: '50px', borderRadius: '50%',
+              background: userProfilePicture ? 'transparent' : 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              overflow: 'hidden', border: '2px solid #38bdf8'
+            }}>
+              {userProfilePicture ? (
+                <img src={userProfilePicture} alt={username} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <span style={{ color: '#fff', fontWeight: '600', fontSize: '1.2rem' }}>{username.charAt(0).toUpperCase()}</span>
+              )}
+            </div>
+            <div>
+              <div style={{ color: '#fff', fontWeight: '600', fontSize: '1rem' }}>{username}</div>
+              <div style={{ color: '#94a3b8', fontSize: '0.8rem' }}>@{username.toLowerCase()}</div>
+            </div>
+          </div>
+          <button
+            onClick={() => navigate(`/profile/${userId}`)}
+            style={{
+              width: '100%', padding: '0.6rem', borderRadius: '8px',
+              background: 'rgba(56, 189, 248, 0.2)', border: '1px solid rgba(56, 189, 248, 0.3)',
+              color: '#38bdf8', fontWeight: '600', cursor: 'pointer', fontSize: '0.85rem',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(56, 189, 248, 0.3)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'rgba(56, 189, 248, 0.2)'}
+          >
+            View Profile
+          </button>
+        </div>
+
+        {/* Quick Links */}
+        <div style={{
+          background: '#1e293b',
+          borderRadius: '16px',
+          padding: '0.5rem',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
+        }}>
+          {quickLinks.map((link, idx) => (
+            <button
+              key={idx}
+              onClick={() => navigate(link.path)}
+              style={{
+                width: '100%', padding: '0.75rem 1rem', borderRadius: '10px',
+                background: link.active ? 'rgba(56, 189, 248, 0.15)' : 'transparent',
+                border: 'none', color: link.active ? '#38bdf8' : '#e2e8f0',
+                display: 'flex', alignItems: 'center', gap: '0.75rem',
+                cursor: 'pointer', fontSize: '0.95rem', fontWeight: '500',
+                transition: 'all 0.2s', textAlign: 'left'
+              }}
+              onMouseEnter={e => { if (!link.active) e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
+              onMouseLeave={e => { if (!link.active) e.currentTarget.style.background = 'transparent' }}
+            >
+              <span style={{ fontSize: '1.1rem', width: '24px' }}>{link.icon}</span>
+              {link.label}
+            </button>
+          ))}
+        </div>
+
+        {/* News & Updates */}
+        <div style={{
+          background: '#1e293b',
+          borderRadius: '16px',
+          padding: '1rem',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', color: '#e2e8f0', fontWeight: '600', fontSize: '0.95rem' }}>
+            <FaNewspaper style={{ color: '#38bdf8' }} /> News & Updates
+          </div>
+          {newsItems.map((item, idx) => (
+            <div
+              key={idx}
+              style={{
+                padding: '0.6rem 0',
+                borderBottom: idx < newsItems.length - 1 ? '1px solid #334155' : 'none',
+                cursor: 'pointer'
+              }}
+            >
+              <div style={{ color: '#e2e8f0', fontSize: '0.85rem', marginBottom: '0.25rem' }}>{item.title}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{
+                  fontSize: '0.65rem', padding: '0.15rem 0.4rem', borderRadius: '4px',
+                  background: item.type === 'update' ? 'rgba(34, 197, 94, 0.2)' : item.type === 'event' ? 'rgba(251, 191, 36, 0.2)' : 'rgba(59, 130, 246, 0.2)',
+                  color: item.type === 'update' ? '#22c55e' : item.type === 'event' ? '#fbbf24' : '#3b82f6'
+                }}>
+                  {item.type}
+                </span>
+                <span style={{ color: '#64748b', fontSize: '0.75rem' }}>{item.time}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Main Feed */}
+      <div className="feed-container" style={{ flex: 1, maxWidth: '600px' }}>
+        {/* Feed Tabs */}
+        <div style={{
+          display: 'flex', gap: '0.5rem', marginBottom: '1.5rem',
+          background: '#1e293b', borderRadius: '12px', padding: '0.4rem'
+        }}>
+          {[
+            { key: 'foryou', label: 'For You', icon: '✨' },
+            { key: 'following', label: 'Following', icon: '👥' },
+            { key: 'trending', label: 'Trending', icon: '🔥' }
+          ].map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              style={{
+                flex: 1, padding: '0.7rem 1rem', borderRadius: '8px',
+                background: activeTab === tab.key ? '#38bdf8' : 'transparent',
+                border: 'none', color: activeTab === tab.key ? '#0f172a' : '#94a3b8',
+                fontWeight: '600', cursor: 'pointer', fontSize: '0.9rem',
+                transition: 'all 0.2s', display: 'flex', alignItems: 'center',
+                justifyContent: 'center', gap: '0.4rem'
+              }}
+              onMouseEnter={e => { if (activeTab !== tab.key) e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
+              onMouseLeave={e => { if (activeTab !== tab.key) e.currentTarget.style.background = 'transparent' }}
+            >
+              <span>{tab.icon}</span> {tab.label}
+            </button>
+          ))}
+        </div>
         {/* Post Composer */}
-        <div className="post-composer" style={{ width: '100%', background: '#292933', borderRadius: '12px', padding: '1rem', marginBottom: '1.5rem', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>
+        <div className="post-composer" style={{ position: 'relative', width: '100%', background: '#292933', borderRadius: '12px', padding: '1rem', marginBottom: '1.5rem', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
             <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#38bdf8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: '#fff' }}>
               <img src={userProfilePicture} alt={username} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
@@ -205,11 +578,143 @@ const LandingPage = () => {
               <FaImage style={{ fontSize: '1.2rem' }} /> Photo/Video
             </button>
             <button
-              style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#fbbf24', fontWeight: '600', fontSize: '0.95rem' }}
+              onClick={() => setShowFeelingPicker(!showFeelingPicker)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', color: selectedFeeling ? '#22c55e' : '#fbbf24', fontWeight: '600', fontSize: '0.95rem' }}
             >
-              <FaSmile style={{ fontSize: '1.2rem' }} /> Feeling/Activity
+              {selectedFeeling ? (
+                <><span style={{ fontSize: '1.2rem' }}>{selectedFeeling.emoji}</span> {selectedFeeling.label}</>
+              ) : (
+                <><FaSmile style={{ fontSize: '1.2rem' }} /> Feeling/Activity</>
+              )}
             </button>
+            {selectedFeeling && (
+              <button
+                onClick={clearFeeling}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', padding: '0.25rem' }}
+                title="Clear feeling"
+              >
+                <FaTimes />
+              </button>
+            )}
           </div>
+
+          {/* Selected Feeling Preview */}
+          {selectedFeeling && (
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '0.5rem',
+              padding: '0.5rem 0.75rem', marginTop: '0.5rem',
+              background: '#1e293b', borderRadius: '8px', color: '#94a3b8', fontSize: '0.9rem'
+            }}>
+              <span style={{ fontSize: '1.3rem' }}>{selectedFeeling.emoji}</span>
+              <span>
+                {selectedFeeling.category === 'feelings' && 'feeling '}
+                {selectedFeeling.category === 'eating' && 'eating '}
+                {selectedFeeling.category === 'celebrating' && 'celebrating '}
+                {selectedFeeling.category === 'activities' && ''}
+                <strong style={{ color: '#e2e8f0' }}>{selectedFeeling.label}</strong>
+              </span>
+            </div>
+          )}
+
+          {/* Feeling/Activity Picker Modal */}
+          {showFeelingPicker && (
+            <div style={{
+              position: 'absolute', top: '100%', left: 0, right: 0,
+              background: '#1e293b', borderRadius: '12px', marginTop: '0.5rem',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.4)', zIndex: 1000,
+              maxHeight: '400px', overflow: 'hidden', display: 'flex', flexDirection: 'column'
+            }}>
+              {/* Header */}
+              <div style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                padding: '0.75rem 1rem', borderBottom: '1px solid #334155'
+              }}>
+                <h3 style={{ margin: 0, color: '#e2e8f0', fontSize: '1rem', fontWeight: '600' }}>
+                  How are you feeling?
+                </h3>
+                <button
+                  onClick={() => { setShowFeelingPicker(false); setFeelingSearchQuery(""); }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', padding: '0.25rem' }}
+                >
+                  <FaTimes />
+                </button>
+              </div>
+
+              {/* Search */}
+              <div style={{ padding: '0.75rem 1rem' }}>
+                <input
+                  type="text"
+                  placeholder="Search feelings & activities..."
+                  value={feelingSearchQuery}
+                  onChange={(e) => setFeelingSearchQuery(e.target.value)}
+                  style={{
+                    width: '100%', padding: '0.6rem 1rem', borderRadius: '8px',
+                    border: '1px solid #334155', background: '#0f172a', color: '#e2e8f0',
+                    fontSize: '0.9rem', outline: 'none'
+                  }}
+                />
+              </div>
+
+              {/* Category Tabs */}
+              <div style={{
+                display: 'flex', gap: '0.5rem', padding: '0 1rem 0.75rem',
+                borderBottom: '1px solid #334155', overflowX: 'auto'
+              }}>
+                {[
+                  { key: 'feelings', label: '😊 Feelings' },
+                  { key: 'activities', label: '🎮 Activities' },
+                  { key: 'eating', label: '🍕 Eating' },
+                  { key: 'celebrating', label: '🎉 Celebrating' }
+                ].map(cat => (
+                  <button
+                    key={cat.key}
+                    onClick={() => setActiveCategory(cat.key)}
+                    style={{
+                      padding: '0.4rem 0.8rem', borderRadius: '20px', border: 'none',
+                      background: activeCategory === cat.key ? '#3b82f6' : '#334155',
+                      color: activeCategory === cat.key ? '#fff' : '#94a3b8',
+                      cursor: 'pointer', fontSize: '0.85rem', fontWeight: '500',
+                      whiteSpace: 'nowrap', transition: 'all 0.2s'
+                    }}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Feelings Grid */}
+              <div style={{
+                display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+                gap: '0.5rem', padding: '1rem', overflowY: 'auto', maxHeight: '250px'
+              }}>
+                {getFilteredFeelings().map((item, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleFeelingSelect(item)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '0.5rem',
+                      padding: '0.6rem 0.75rem', borderRadius: '8px', border: 'none',
+                      background: '#334155', color: '#e2e8f0', cursor: 'pointer',
+                      fontSize: '0.85rem', transition: 'all 0.2s', textAlign: 'left'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = '#475569'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = '#334155'}
+                  >
+                    <span style={{ fontSize: '1.3rem' }}>{item.emoji}</span>
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {item.label}
+                    </span>
+                  </button>
+                ))}
+                {getFilteredFeelings().length === 0 && (
+                  <div style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#64748b', padding: '2rem' }}>
+                    No results found
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {newPostContent.trim() && (
             <button
               onClick={handleCreatePost}
@@ -222,7 +727,50 @@ const LandingPage = () => {
             const likedByUser = post.likes?.some(like => like.userId === userId);
             const savedByUser = post.savedBy?.some(saved => saved.userId === userId);
             return (
-              <div key={post.id} className="post-card" style={{ background: '#1e293b', borderRadius: '12px', padding: '1rem', marginBottom: '1rem' }}>
+              <div key={post.id} className="post-card" style={{ position: 'relative', background: '#1e293b', borderRadius: '12px', padding: '1rem', marginBottom: '1rem' }}>
+                {/* Floating Reaction Card - Top Right */}
+                {getReactionSummary(post.reactions).length > 0 && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '-8px',
+                    right: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '2px',
+                    background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)',
+                    borderRadius: '20px',
+                    padding: '4px 10px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.1)',
+                    zIndex: 10
+                  }}>
+                    {getReactionSummary(post.reactions).map((reaction, idx) => (
+                      <div
+                        key={idx}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          cursor: 'pointer',
+                          transition: 'transform 0.2s'
+                        }}
+                        title={`${reaction.count} ${reaction.label}\n${reaction.users.slice(0, 3).join(', ')}${reaction.users.length > 3 ? ` +${reaction.users.length - 3}` : ''}`}
+                        onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.15)'}
+                        onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                      >
+                        <span style={{ fontSize: '1rem' }}>{reaction.emoji}</span>
+                        <span style={{
+                          fontSize: '0.7rem',
+                          color: '#94a3b8',
+                          fontWeight: '600',
+                          marginLeft: '1px',
+                          marginRight: idx < getReactionSummary(post.reactions).length - 1 ? '4px' : '0'
+                        }}>
+                          {reaction.count}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 {/* Post Header - Avatar, Name, Time */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
                   <div
@@ -272,7 +820,8 @@ const LandingPage = () => {
                 {/* Reaction counts */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0', borderBottom: '1px solid #334155', marginBottom: '0.5rem', color: '#94a3b8', fontSize: '0.85rem', gap: '1rem' }}>
                   <span>{post.likes?.length || 0} likes</span>
-                  <span style={{ marginLeft: 'auto' }}
+                  <span 
+                    style={{ marginLeft: 'auto', cursor: 'pointer' }}
                     onClick={() => setViewAllCommentsPostId(post.id)}
                     onMouseEnter={e => e.target.style.textDecoration = 'underline'}
                     onMouseLeave={e => e.target.style.textDecoration = 'none'}
@@ -311,6 +860,20 @@ const LandingPage = () => {
                     >
                       <FaRegCommentDots />
                       <span style={{ fontSize: '0.9rem', fontWeight: '500' }}>Comment</span>
+                    </button>
+                    <button
+                      onClick={() => setShowPostReactionPicker(showPostReactionPicker === post.id ? null : post.id)}
+                      style={{
+                        background: 'none', border: 'none', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', gap: '0.4rem',
+                        color: '#f59e0b', padding: '0.5rem 0.75rem',
+                        borderRadius: '6px', transition: 'background 0.2s'
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = '#334155'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                    >
+                      <FaSmile />
+                      <span style={{ fontSize: '0.9rem', fontWeight: '500' }}>React</span>
                     </button>
                     <button
                       onClick={() => handleSave(post.id)}
@@ -406,6 +969,117 @@ const LandingPage = () => {
                   </div>
                 )}
 
+                {/* Post Reaction Picker Modal */}
+                {showPostReactionPicker === post.id && (
+                  <div style={{
+                    position: 'relative', marginTop: '0.75rem', background: '#1e293b', borderRadius: '12px',
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.4)', overflow: 'hidden',
+                    maxHeight: '300px', display: 'flex', flexDirection: 'column'
+                  }}>
+                    {/* Header */}
+                    <div style={{
+                      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                      padding: '0.75rem 1rem', borderBottom: '1px solid #334155'
+                    }}>
+                      <h4 style={{ margin: 0, color: '#e2e8f0', fontSize: '0.9rem', fontWeight: '600' }}>
+                        Add your reaction
+                      </h4>
+                      <button
+                        onClick={() => { setShowPostReactionPicker(null); setPostReactionSearch(""); }}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', padding: '0.2rem' }}
+                      >
+                        <FaTimes />
+                      </button>
+                    </div>
+
+                    {/* Search */}
+                    <div style={{ padding: '0.5rem 1rem' }}>
+                      <input
+                        type="text"
+                        placeholder="Search reactions..."
+                        value={postReactionSearch}
+                        onChange={(e) => setPostReactionSearch(e.target.value)}
+                        style={{
+                          width: '100%', padding: '0.5rem 0.75rem', borderRadius: '6px',
+                          border: '1px solid #334155', background: '#0f172a', color: '#e2e8f0',
+                          fontSize: '0.8rem', outline: 'none'
+                        }}
+                      />
+                    </div>
+
+                    {/* Category Tabs */}
+                    <div style={{
+                      display: 'flex', gap: '0.3rem', padding: '0 1rem 0.5rem',
+                      borderBottom: '1px solid #334155', overflowX: 'auto'
+                    }}>
+                      {[
+                        { key: 'feelings', label: '😊' },
+                        { key: 'activities', label: '🎮' },
+                        { key: 'eating', label: '🍕' },
+                        { key: 'celebrating', label: '🎉' }
+                      ].map(cat => (
+                        <button
+                          key={cat.key}
+                          onClick={() => setPostReactionCategory(cat.key)}
+                          style={{
+                            padding: '0.3rem 0.6rem', borderRadius: '15px', border: 'none',
+                            background: postReactionCategory === cat.key ? '#3b82f6' : '#334155',
+                            color: postReactionCategory === cat.key ? '#fff' : '#94a3b8',
+                            cursor: 'pointer', fontSize: '0.8rem', fontWeight: '500',
+                            whiteSpace: 'nowrap', transition: 'all 0.2s'
+                          }}
+                        >
+                          {cat.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Reactions Grid */}
+                    <div style={{
+                      display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))',
+                      gap: '0.4rem', padding: '0.75rem', overflowY: 'auto', maxHeight: '150px'
+                    }}>
+                      {getFilteredPostReactions().map((item, index) => {
+                        const userHasThisReaction = hasUserReacted(post.reactions, item.emoji);
+                        return (
+                          <button
+                            key={index}
+                            onClick={() => handlePostReaction(post.id, item)}
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: '0.4rem',
+                              padding: '0.5rem 0.6rem', borderRadius: '6px', border: 'none',
+                              background: userHasThisReaction ? '#22c55e' : '#334155',
+                              color: userHasThisReaction ? '#fff' : '#e2e8f0',
+                              cursor: 'pointer', fontSize: '0.75rem', transition: 'all 0.2s',
+                              textAlign: 'left'
+                            }}
+                            onMouseEnter={(e) => {
+                              if (!userHasThisReaction) e.currentTarget.style.background = '#475569'
+                            }}
+                            onMouseLeave={(e) => {
+                              if (!userHasThisReaction) e.currentTarget.style.background = '#334155'
+                            }}
+                            title={userHasThisReaction ? 'Remove reaction' : 'Add reaction'}
+                          >
+                            <span style={{ fontSize: '1.1rem' }}>{item.emoji}</span>
+                            <span style={{ 
+                              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                              fontSize: '0.7rem'
+                            }}>
+                              {item.label}
+                            </span>
+                          </button>
+                        );
+                      })}
+                      {getFilteredPostReactions().length === 0 && (
+                        <div style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#64748b', padding: '1rem', fontSize: '0.8rem' }}>
+                          No reactions found
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {/* Preview first comment */}
                 {post.comments?.length > 0 && (
                   <div style={{ marginTop: '0.75rem', padding: '0.6rem', background: '#0f172a', borderRadius: '12px' }}>
@@ -455,6 +1129,127 @@ const LandingPage = () => {
           })}
         </div>
       </div>
+
+      {/* Right Sidebar */}
+      <div style={{
+        width: '300px',
+        flexShrink: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '1rem',
+        position: 'sticky',
+        top: '90px',
+        height: 'fit-content',
+        maxHeight: 'calc(100vh - 110px)'
+      }}>
+        {/* Trending Topics */}
+        <div style={{
+          background: '#1e293b',
+          borderRadius: '16px',
+          padding: '1rem',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: '#e2e8f0', fontWeight: '600', fontSize: '1rem' }}>
+            <FaFire style={{ color: '#f97316' }} /> Trending Now
+          </div>
+          {trendingTopics.map((topic, idx) => (
+            <div
+              key={idx}
+              style={{
+                padding: '0.75rem',
+                borderRadius: '10px',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                marginBottom: '0.5rem'
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            >
+              <div style={{ color: '#64748b', fontSize: '0.75rem', marginBottom: '0.2rem' }}>{topic.category}</div>
+              <div style={{ color: '#e2e8f0', fontWeight: '600', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                <FaHashtag style={{ fontSize: '0.8rem', color: '#38bdf8' }} /> {topic.tag}
+              </div>
+              <div style={{ color: '#64748b', fontSize: '0.75rem', marginTop: '0.2rem' }}>{topic.posts} posts</div>
+            </div>
+          ))}
+          <button
+            style={{
+              width: '100%', padding: '0.6rem', borderRadius: '8px',
+              background: 'transparent', border: 'none',
+              color: '#38bdf8', fontWeight: '500', cursor: 'pointer', fontSize: '0.85rem',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(56, 189, 248, 0.1)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+          >
+            Show more
+          </button>
+        </div>
+
+        {/* Suggested Friends */}
+        <div style={{
+          background: '#1e293b',
+          borderRadius: '16px',
+          padding: '1rem',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: '#e2e8f0', fontWeight: '600', fontSize: '1rem' }}>
+            <FaUserFriends style={{ color: '#a78bfa' }} /> People you may know
+          </div>
+          {[
+            { name: 'Alex Johnson', handle: 'alexj', mutual: 5 },
+            { name: 'Sarah Miller', handle: 'sarahm', mutual: 3 },
+            { name: 'Mike Chen', handle: 'mikec', mutual: 8 },
+          ].map((person, idx) => (
+            <div
+              key={idx}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '0.75rem',
+                padding: '0.6rem 0',
+                borderBottom: idx < 2 ? '1px solid #334155' : 'none'
+              }}
+            >
+              <div style={{
+                width: '44px', height: '44px', borderRadius: '50%',
+                background: `linear-gradient(135deg, hsl(${idx * 60 + 200}, 70%, 50%) 0%, hsl(${idx * 60 + 230}, 70%, 60%) 100%)`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: '#fff', fontWeight: '600', fontSize: '1rem'
+              }}>
+                {person.name.charAt(0)}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ color: '#e2e8f0', fontWeight: '600', fontSize: '0.9rem' }}>{person.name}</div>
+                <div style={{ color: '#64748b', fontSize: '0.75rem' }}>{person.mutual} mutual friends</div>
+              </div>
+              <button
+                style={{
+                  padding: '0.4rem 0.75rem', borderRadius: '6px',
+                  background: '#38bdf8', border: 'none',
+                  color: '#0f172a', fontWeight: '600', cursor: 'pointer', fontSize: '0.75rem',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = '#0ea5e9'}
+                onMouseLeave={e => e.currentTarget.style.background = '#38bdf8'}
+              >
+                Follow
+              </button>
+            </div>
+          ))}
+        </div>
+
+        {/* Footer Links */}
+        <div style={{ padding: '0.5rem 1rem', color: '#64748b', fontSize: '0.7rem' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.5rem' }}>
+            {['About', 'Help', 'Privacy', 'Terms', 'Careers'].map((link, idx) => (
+              <span key={idx} style={{ cursor: 'pointer' }} onMouseEnter={e => e.target.style.color = '#94a3b8'} onMouseLeave={e => e.target.style.color = '#64748b'}>
+                {link} {idx < 4 && '·'}
+              </span>
+            ))}
+          </div>
+          <div>© 2026 Aurora Social</div>
+        </div>
+      </div>
+
       {/* Full comment overlay modal - Facebook style */}
       {viewAllCommentsPostId && (() => {
         const post = posts.find(p => p.id === viewAllCommentsPostId);
