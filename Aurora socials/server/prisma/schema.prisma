@@ -43,6 +43,7 @@ model Post {
   comments  Comment[]
   savedBy   SavedPost[]
   reactions Reaction[]
+  hashtags  PostHashtag[]
 }
 
 model Like {
@@ -127,4 +128,33 @@ model Reaction {
   post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   postId    Int
   @@unique([userId, postId, emoji])
+}
+
+model Hashtag {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  posts     PostHashtag[]
+}
+
+model PostHashtag {
+  id        Int      @id @default(autoincrement())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    Int
+  hashtag   Hashtag  @relation(fields: [hashtagId], references: [id], onDelete: Cascade)
+  hashtagId Int
+  createdAt DateTime @default(now())
+  @@unique([postId, hashtagId])
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  type      String   // reaction, comment_like, comment_reply, follow, friend_request
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  userId    Int      // User who receives the notification
+  fromUserId Int?    // User who triggered the notification
+  postId    Int?     // Related post if applicable
+  commentId Int?     // Related comment if applicable
 }

@@ -151,7 +151,48 @@ npx prisma generate   # Generate client
 - **Database**: `server/prisma/dev.db`
 - **Max upload size**: `50MB` (for base64 images)
 
-## 📖 Documentation
+## � PostgreSQL Migration (Optional)
+
+To migrate from SQLite to PostgreSQL for production or multi-system deployment:
+
+### Prerequisites
+- Docker Desktop installed, OR
+- PostgreSQL installed locally
+
+### Steps
+
+1. **Start PostgreSQL with Docker:**
+   ```bash
+   cd server
+   docker compose up -d
+   ```
+
+2. **Update the database provider in `server/prisma/schema.prisma`:**
+   ```prisma
+   datasource db {
+     provider = "postgresql"
+     url      = env("DATABASE_URL")
+   }
+   ```
+
+3. **Update `server/.env`:**
+   ```
+   DATABASE_URL="postgresql://aurora:aurora123@localhost:5432/aurora_social?schema=public"
+   ```
+
+4. **Run migrations:**
+   ```bash
+   npx prisma migrate dev --name migrate_to_postgres
+   ```
+
+5. **Migrate existing data (optional):**
+   ```bash
+   node migrate-data-to-postgres.js
+   ```
+
+See [server/PRISMA_SETUP.md](server/PRISMA_SETUP.md) for detailed instructions.
+
+## �📖 Documentation
 
 For detailed architecture, data flow diagrams, and UML:
 → **[ARCHITECTURE.md](ARCHITECTURE.md)**

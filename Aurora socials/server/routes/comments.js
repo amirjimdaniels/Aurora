@@ -2,6 +2,7 @@ import express from 'express';
 import pkg from '@prisma/client';
 const { PrismaClient } = pkg;
 const prisma = new PrismaClient();
+import { createNotification } from './notifications.js';
 
 const router = express.Router();
 
@@ -21,6 +22,49 @@ router.post('/:id/comment', async (req, res) => {
         parentId: parentId ? parseInt(parentId, 10) : null
       }
     });
+    
+    // Get user info for notification
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { username: true }
+    });
+    
+    if (parentId) {
+      // This is a reply to a comment
+      const parentComment = await prisma.comment.findUnique({
+        where: { id: parseInt(parentId, 10) },
+        select: { authorId: true }
+      });
+      
+      if (parentComment && parentComment.authorId !== userId) {
+        await createNotification({
+          userId: parentComment.authorId,
+          fromUserId: userId,
+          type: 'comment_reply',
+          message: `${user?.username || 'Someone'} replied to your comment`,
+          postId,
+          commentId: comment.id
+        });
+      }
+    } else {
+      // This is a comment on a post
+      const post = await prisma.post.findUnique({
+        where: { id: postId },
+        select: { authorId: true }
+      });
+      
+      if (post && post.authorId !== userId) {
+        await createNotification({
+          userId: post.authorId,
+          fromUserId: userId,
+          type: 'comment',
+          message: `${user?.username || 'Someone'} commented on your post`,
+          postId,
+          commentId: comment.id
+        });
+      }
+    }
+    
     return res.json({ success: true, comment });
   } catch (err) {
     console.error(err);
@@ -44,6 +88,28 @@ router.post('/:commentId/like', async (req, res) => {
       return res.json({ success: true, liked: false });
     } else {
       await prisma.commentLike.create({ data: { userId, commentId } });
+      
+      // Get comment author and send notification
+      const comment = await prisma.comment.findUnique({
+        where: { id: commentId },
+        select: { authorId: true, postId: true }
+      });
+      
+      if (comment && comment.authorId !== userId) {
+        const user = await prisma.user.findUnique({
+          where: { id: userId },
+          select: { username: true }
+        });
+        await createNotification({
+          userId: comment.authorId,
+          fromUserId: userId,
+          type: 'comment_like',
+          message: `${user?.username || 'Someone'} liked your comment`,
+          postId: comment.postId,
+          commentId
+        });
+      }
+      
       return res.json({ success: true, liked: true });
     }
   } catch (err) {

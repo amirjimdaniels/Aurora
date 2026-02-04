@@ -88,7 +88,7 @@ const Register = () => {
     };
 
     return (
-        <>
+        <div className="auth-page">
          {success ? (
             <section>
                 <h1>Success!</h1>      
@@ -196,7 +196,7 @@ const Register = () => {
         </p>
         </section>
         )}
-        </>
+        </div>
     )
 
 }

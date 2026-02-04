@@ -55,7 +55,7 @@ const SignIn = () => {
     };
 
     return (
-        <>
+        <div className="auth-page">
             {success ? (
                 <section>
                     <h1>Sign In Successful!</h1>
@@ -105,7 +105,7 @@ const SignIn = () => {
                     </p>
                 </section>
             )}
-        </>
+        </div>
     );
 };
 

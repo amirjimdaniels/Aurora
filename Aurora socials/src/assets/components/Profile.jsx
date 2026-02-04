@@ -564,11 +564,14 @@ const Profile = () => {
                 onClick={() => setFollowModal(null)}
                 style={{
                   background: '#3a3b3c', border: 'none', color: '#e4e6eb',
-                  width: '32px', height: '32px', borderRadius: '50%',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
+                  width: '36px', height: '36px', borderRadius: '50%',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                  fontSize: '1.2rem', fontWeight: 'bold', transition: 'background 0.15s'
                 }}
+                onMouseOver={(e) => e.currentTarget.style.background = '#4a4b4c'}
+                onMouseOut={(e) => e.currentTarget.style.background = '#3a3b3c'}
               >
-                <FaTimes />
+                ×
               </button>
             </div>
 

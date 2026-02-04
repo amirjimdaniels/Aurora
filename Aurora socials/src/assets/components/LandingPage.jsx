@@ -35,19 +35,14 @@ const LandingPage = () => {
   const [postReactionSearch, setPostReactionSearch] = useState("");
   const [postReactionCategory, setPostReactionCategory] = useState("feelings");
   const [activeTab, setActiveTab] = useState("foryou"); // foryou, following, trending
+  const [trendingHashtags, setTrendingHashtags] = useState([]);
+  const [selectedHashtag, setSelectedHashtag] = useState(null); // null or tag name
+  const [hashtagPosts, setHashtagPosts] = useState([]);
+  const [suggestedUsers, setSuggestedUsers] = useState([]);
 
   // Get userId and username from localStorage (needed early for quickLinks)
   const userId = Number(localStorage.getItem('userId'));
   const username = localStorage.getItem('username') || 'User';
-
-  // Trending topics data
-  const trendingTopics = [
-    { tag: "AuroraSocial", posts: "12.4K", category: "Technology" },
-    { tag: "Gaming", posts: "8.2K", category: "Entertainment" },
-    { tag: "Photography", posts: "5.7K", category: "Art" },
-    { tag: "Music", posts: "4.1K", category: "Entertainment" },
-    { tag: "Coding", posts: "3.8K", category: "Technology" },
-  ];
 
   // News/updates data
   const newsItems = [
@@ -58,11 +53,10 @@ const LandingPage = () => {
 
   // Quick links for left sidebar
   const quickLinks = [
-    { icon: <FaHome />, label: "Home", path: "/landing", active: true },
+    { icon: <FaHome />, label: "Home", path: "/feed", active: true },
     { icon: <FaUser />, label: "Profile", path: `/profile/${userId}` },
     { icon: <FaUserFriends />, label: "Friends", path: "/friends" },
     { icon: <FaRegBookmark />, label: "Saved", path: "/saved" },
-    { icon: <FaBell />, label: "Notifications", path: "/notifications" },
     { icon: <FaCog />, label: "Settings", path: "/settings" },
   ];
 
@@ -242,6 +236,24 @@ const LandingPage = () => {
       .slice(0, 3); // Show top 3 reactions
   };
 
+  // Extract feeling/activity from post content and return content without it
+  const extractFeeling = (content) => {
+    if (!content) return { mainContent: '', feeling: null };
+    
+    // Match patterns like "— feeling 😍 loved" or "— eating 🍕 pizza" etc.
+    const feelingPattern = /\n\n— (feeling|eating|celebrating|watching|playing|listening to|doing) ([\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F600}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|❤️‍🔥|🫠|🫶|✨|💫|💪|❤️) (.+)$/u;
+    const match = content.match(feelingPattern);
+    
+    if (match) {
+      const [fullMatch, type, emoji, label] = match;
+      return {
+        mainContent: content.replace(fullMatch, ''),
+        feeling: { type, emoji, label }
+      };
+    }
+    return { mainContent: content, feeling: null };
+  };
+
   // Check if user has reacted with specific emoji
   const hasUserReacted = (reactions, emoji) => {
     if (!reactions || !userId) return false;
@@ -313,6 +325,50 @@ const LandingPage = () => {
     };
     fetchPosts();
   }, []);
+
+  // Fetch trending hashtags
+  useEffect(() => {
+    const fetchTrending = async () => {
+      try {
+        const response = await axios.get("/api/posts/trending/hashtags");
+        setTrendingHashtags(response.data);
+      } catch (err) {
+        console.error("Failed to load trending hashtags:", err);
+      }
+    };
+    fetchTrending();
+  }, []);
+
+  // Fetch suggested users (real users from database)
+  useEffect(() => {
+    const fetchSuggestedUsers = async () => {
+      if (!userId) return;
+      try {
+        const response = await axios.get(`/api/users/suggestions/${userId}`);
+        setSuggestedUsers(response.data);
+      } catch (err) {
+        console.error("Failed to load suggested users:", err);
+      }
+    };
+    fetchSuggestedUsers();
+  }, [userId]);
+
+  // Fetch posts by hashtag when selected
+  useEffect(() => {
+    const fetchHashtagPosts = async () => {
+      if (!selectedHashtag) {
+        setHashtagPosts([]);
+        return;
+      }
+      try {
+        const response = await axios.get(`/api/posts/hashtag/${selectedHashtag}`);
+        setHashtagPosts(response.data.posts || []);
+      } catch (err) {
+        console.error("Failed to load hashtag posts:", err);
+      }
+    };
+    fetchHashtagPosts();
+  }, [selectedHashtag]);
 
   // Fetch current user's profile picture
   useEffect(() => {
@@ -722,56 +778,68 @@ const LandingPage = () => {
             >Post</button>
           )}
         </div>
+
+        {/* Show hashtag header when viewing a hashtag */}
+        {selectedHashtag && (
+          <div style={{
+            background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
+            borderRadius: '12px',
+            padding: '1rem 1.25rem',
+            marginBottom: '1rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <div style={{
+                width: '48px', height: '48px',
+                borderRadius: '12px',
+                background: 'linear-gradient(135deg, #38bdf8 0%, #2563eb 100%)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center'
+              }}>
+                <FaHashtag style={{ color: '#fff', fontSize: '1.5rem' }} />
+              </div>
+              <div>
+                <h3 style={{ color: '#e2e8f0', fontSize: '1.25rem', fontWeight: '700', margin: 0 }}>
+                  #{selectedHashtag}
+                </h3>
+                <p style={{ color: '#64748b', fontSize: '0.85rem', margin: 0 }}>
+                  {hashtagPosts.length} {hashtagPosts.length === 1 ? 'post' : 'posts'}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setSelectedHashtag(null)}
+              style={{
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                color: '#ef4444',
+                padding: '0.5rem 1rem',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontWeight: '500',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
+              }}
+            >
+              Back to Feed
+            </button>
+          </div>
+        )}
+
         <div className="posts-wrapper">
-          {posts.map(post => {
+          {(selectedHashtag ? hashtagPosts : posts).map(post => {
             const likedByUser = post.likes?.some(like => like.userId === userId);
             const savedByUser = post.savedBy?.some(saved => saved.userId === userId);
+            const { mainContent, feeling } = extractFeeling(post.content);
             return (
               <div key={post.id} className="post-card" style={{ position: 'relative', background: '#1e293b', borderRadius: '12px', padding: '1rem', marginBottom: '1rem' }}>
-                {/* Floating Reaction Card - Top Right */}
-                {getReactionSummary(post.reactions).length > 0 && (
-                  <div style={{
-                    position: 'absolute',
-                    top: '-8px',
-                    right: '12px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '2px',
-                    background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)',
-                    borderRadius: '20px',
-                    padding: '4px 10px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.1)',
-                    zIndex: 10
-                  }}>
-                    {getReactionSummary(post.reactions).map((reaction, idx) => (
-                      <div
-                        key={idx}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          cursor: 'pointer',
-                          transition: 'transform 0.2s'
-                        }}
-                        title={`${reaction.count} ${reaction.label}\n${reaction.users.slice(0, 3).join(', ')}${reaction.users.length > 3 ? ` +${reaction.users.length - 3}` : ''}`}
-                        onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.15)'}
-                        onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-                      >
-                        <span style={{ fontSize: '1rem' }}>{reaction.emoji}</span>
-                        <span style={{
-                          fontSize: '0.7rem',
-                          color: '#94a3b8',
-                          fontWeight: '600',
-                          marginLeft: '1px',
-                          marginRight: idx < getReactionSummary(post.reactions).length - 1 ? '4px' : '0'
-                        }}>
-                          {reaction.count}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Post Header - Avatar, Name, Time */}
+                {/* Post Header - Avatar, Name, Time, and Reactions */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
                   <div
                     onClick={() => navigate(`/profile/${post.author?.id}`)}
@@ -791,23 +859,69 @@ const LandingPage = () => {
                     )}
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div
-                      onClick={() => navigate(`/profile/${post.author?.id}`)}
-                      style={{ color: '#e2e8f0', fontWeight: '600', fontSize: '0.95rem', cursor: 'pointer' }}
-                      onMouseEnter={e => e.target.style.textDecoration = 'underline'}
-                      onMouseLeave={e => e.target.style.textDecoration = 'none'}
-                    >
-                      {post.author?.username || "Unknown"}
+                    <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.25rem' }}>
+                      <span
+                        onClick={() => navigate(`/profile/${post.author?.id}`)}
+                        style={{ color: '#e2e8f0', fontWeight: '600', fontSize: '0.95rem', cursor: 'pointer' }}
+                        onMouseEnter={e => e.target.style.textDecoration = 'underline'}
+                        onMouseLeave={e => e.target.style.textDecoration = 'none'}
+                      >
+                        {post.author?.username || "Unknown"}
+                      </span>
+                      {/* Feeling displayed next to username */}
+                      {feeling && (
+                        <span style={{ color: '#94a3b8', fontSize: '0.85rem' }}>
+                          is {feeling.type} {feeling.emoji} {feeling.label}
+                        </span>
+                      )}
                     </div>
                     <div style={{ color: '#64748b', fontSize: '0.8rem' }}>
                       {new Date(post.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} · {new Date(post.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
                     </div>
                   </div>
+                  
+                  {/* Compact Reactions Display - Top Right of Header */}
+                  {getReactionSummary(post.reactions).length > 0 && (
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '3px',
+                      background: 'rgba(51, 65, 85, 0.5)',
+                      borderRadius: '16px',
+                      padding: '4px 8px',
+                      flexShrink: 0
+                    }}>
+                      {getReactionSummary(post.reactions).slice(0, 4).map((reaction, idx) => (
+                        <div
+                          key={idx}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            cursor: 'pointer',
+                            transition: 'transform 0.2s'
+                          }}
+                          title={`${reaction.count} ${reaction.label}\n${reaction.users.slice(0, 3).join(', ')}${reaction.users.length > 3 ? ` +${reaction.users.length - 3}` : ''}`}
+                          onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.1)'}
+                          onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                        >
+                          <span style={{ fontSize: '0.85rem' }}>{reaction.emoji}</span>
+                          <span style={{
+                            fontSize: '0.65rem',
+                            color: '#94a3b8',
+                            fontWeight: '600',
+                            marginLeft: '1px'
+                          }}>
+                            {reaction.count}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Post Content */}
                 <div style={{ color: '#f1f5f9', fontSize: '1rem', lineHeight: '1.5', marginBottom: '0.75rem', whiteSpace: 'pre-wrap' }}>
-                  {post.content}
+                  {mainContent}
                 </div>
 
                 {/* Media */}
@@ -1152,26 +1266,59 @@ const LandingPage = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: '#e2e8f0', fontWeight: '600', fontSize: '1rem' }}>
             <FaFire style={{ color: '#f97316' }} /> Trending Now
           </div>
-          {trendingTopics.map((topic, idx) => (
-            <div
-              key={idx}
-              style={{
-                padding: '0.75rem',
-                borderRadius: '10px',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                marginBottom: '0.5rem'
-              }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-            >
-              <div style={{ color: '#64748b', fontSize: '0.75rem', marginBottom: '0.2rem' }}>{topic.category}</div>
-              <div style={{ color: '#e2e8f0', fontWeight: '600', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                <FaHashtag style={{ fontSize: '0.8rem', color: '#38bdf8' }} /> {topic.tag}
-              </div>
-              <div style={{ color: '#64748b', fontSize: '0.75rem', marginTop: '0.2rem' }}>{topic.posts} posts</div>
+          {selectedHashtag && (
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '0.5rem 0.75rem', marginBottom: '0.75rem',
+              background: 'rgba(56, 189, 248, 0.1)', borderRadius: '8px'
+            }}>
+              <span style={{ color: '#38bdf8', fontWeight: '500' }}>
+                Viewing #{selectedHashtag}
+              </span>
+              <button
+                onClick={() => setSelectedHashtag(null)}
+                style={{
+                  background: 'none', border: 'none', color: '#f97316',
+                  cursor: 'pointer', fontSize: '0.85rem', fontWeight: '500'
+                }}
+              >
+                Clear
+              </button>
             </div>
-          ))}
+          )}
+          {trendingHashtags.length > 0 ? (
+            trendingHashtags.map((topic, idx) => (
+              <div
+                key={topic.id || idx}
+                onClick={() => setSelectedHashtag(topic.name)}
+                style={{
+                  padding: '0.75rem',
+                  borderRadius: '10px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  marginBottom: '0.5rem',
+                  background: selectedHashtag === topic.name ? 'rgba(56, 189, 248, 0.15)' : 'transparent'
+                }}
+                onMouseEnter={e => {
+                  if (selectedHashtag !== topic.name) e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                }}
+                onMouseLeave={e => {
+                  if (selectedHashtag !== topic.name) e.currentTarget.style.background = 'transparent';
+                }}
+              >
+                <div style={{ color: '#e2e8f0', fontWeight: '600', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                  <FaHashtag style={{ fontSize: '0.8rem', color: '#38bdf8' }} /> {topic.name}
+                </div>
+                <div style={{ color: '#64748b', fontSize: '0.75rem', marginTop: '0.2rem' }}>
+                  {topic.postCount} {topic.postCount === 1 ? 'post' : 'posts'}
+                </div>
+              </div>
+            ))
+          ) : (
+            <div style={{ color: '#64748b', fontSize: '0.85rem', textAlign: 'center', padding: '1rem' }}>
+              No trending hashtags yet. Be the first to start a trend with #YourHashtag!
+            </div>
+          )}
           <button
             style={{
               width: '100%', padding: '0.6rem', borderRadius: '8px',
@@ -1196,45 +1343,76 @@ const LandingPage = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: '#e2e8f0', fontWeight: '600', fontSize: '1rem' }}>
             <FaUserFriends style={{ color: '#a78bfa' }} /> People you may know
           </div>
-          {[
-            { name: 'Alex Johnson', handle: 'alexj', mutual: 5 },
-            { name: 'Sarah Miller', handle: 'sarahm', mutual: 3 },
-            { name: 'Mike Chen', handle: 'mikec', mutual: 8 },
-          ].map((person, idx) => (
-            <div
-              key={idx}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '0.75rem',
-                padding: '0.6rem 0',
-                borderBottom: idx < 2 ? '1px solid #334155' : 'none'
-              }}
-            >
-              <div style={{
-                width: '44px', height: '44px', borderRadius: '50%',
-                background: `linear-gradient(135deg, hsl(${idx * 60 + 200}, 70%, 50%) 0%, hsl(${idx * 60 + 230}, 70%, 60%) 100%)`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#fff', fontWeight: '600', fontSize: '1rem'
-              }}>
-                {person.name.charAt(0)}
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ color: '#e2e8f0', fontWeight: '600', fontSize: '0.9rem' }}>{person.name}</div>
-                <div style={{ color: '#64748b', fontSize: '0.75rem' }}>{person.mutual} mutual friends</div>
-              </div>
-              <button
+          {suggestedUsers.length > 0 ? (
+            suggestedUsers.slice(0, 5).map((person, idx) => (
+              <div
+                key={person.id}
+                onClick={() => navigate(`/profile/${person.id}`)}
                 style={{
-                  padding: '0.4rem 0.75rem', borderRadius: '6px',
-                  background: '#38bdf8', border: 'none',
-                  color: '#0f172a', fontWeight: '600', cursor: 'pointer', fontSize: '0.75rem',
+                  display: 'flex', alignItems: 'center', gap: '0.75rem',
+                  padding: '0.6rem 0',
+                  borderBottom: idx < Math.min(suggestedUsers.length - 1, 4) ? '1px solid #334155' : 'none',
+                  cursor: 'pointer',
                   transition: 'all 0.2s'
                 }}
-                onMouseEnter={e => e.currentTarget.style.background = '#0ea5e9'}
-                onMouseLeave={e => e.currentTarget.style.background = '#38bdf8'}
               >
-                Follow
-              </button>
+                {person.profilePicture ? (
+                  <img
+                    src={person.profilePicture}
+                    alt={person.username}
+                    style={{
+                      width: '44px', height: '44px', borderRadius: '50%',
+                      objectFit: 'cover'
+                    }}
+                  />
+                ) : (
+                  <div style={{
+                    width: '44px', height: '44px', borderRadius: '50%',
+                    background: `linear-gradient(135deg, hsl(${(person.id * 40) % 360}, 70%, 50%) 0%, hsl(${(person.id * 40 + 30) % 360}, 70%, 60%) 100%)`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: '#fff', fontWeight: '600', fontSize: '1rem'
+                  }}>
+                    {person.username.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div style={{ flex: 1 }}>
+                  <div style={{ color: '#e2e8f0', fontWeight: '600', fontSize: '0.9rem' }}>{person.username}</div>
+                  <div style={{ color: '#64748b', fontSize: '0.75rem' }}>
+                    {person.mutualFriends > 0 && `${person.mutualFriends} mutual friends`}
+                    {person.mutualFriends > 0 && person.sharedHashtags > 0 && ' · '}
+                    {person.sharedHashtags > 0 && `${person.sharedHashtags} shared interests`}
+                    {person.mutualFriends === 0 && person.sharedHashtags === 0 && 'Suggested for you'}
+                  </div>
+                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Follow user logic here
+                    axios.post(`/api/follow/${person.id}`, { followerId: userId })
+                      .then(() => {
+                        // Remove from suggestions after following
+                        setSuggestedUsers(prev => prev.filter(u => u.id !== person.id));
+                      })
+                      .catch(err => console.error('Failed to follow:', err));
+                  }}
+                  style={{
+                    padding: '0.4rem 0.75rem', borderRadius: '6px',
+                    background: '#38bdf8', border: 'none',
+                    color: '#0f172a', fontWeight: '600', cursor: 'pointer', fontSize: '0.75rem',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#0ea5e9'}
+                  onMouseLeave={e => e.currentTarget.style.background = '#38bdf8'}
+                >
+                  Follow
+                </button>
+              </div>
+            ))
+          ) : (
+            <div style={{ color: '#64748b', fontSize: '0.85rem', textAlign: 'center', padding: '1rem' }}>
+              No suggestions available yet. Start posting to discover people with similar interests!
             </div>
-          ))}
+          )}
         </div>
 
         {/* Footer Links */}

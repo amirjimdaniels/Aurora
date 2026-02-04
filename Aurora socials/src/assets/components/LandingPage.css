@@ -16,8 +16,8 @@
   vertical-align: middle;
 }
 .feed-container {
-  background: #23232a;
-  border-radius: 24px;
+  background: #1e293b;
+  border-radius: 16px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.25);
   padding: 1.5rem;
   max-width: 600px;
@@ -30,14 +30,16 @@
 
 .centered-bg {
   min-height: 100dvh;
-  width: 100%;
+  width: 100vw;
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  background: #18181b;
+  background: #0f172a;
   padding-top: 90px; /* Account for fixed navbar */
   padding-bottom: max(env(safe-area-inset-bottom, 0px), 1.5rem);
   box-sizing: border-box;
+  margin-left: calc(-50vw + 50%);
+  margin-right: calc(-50vw + 50%);
 }
 
 /* Hide sidebars on smaller screens */

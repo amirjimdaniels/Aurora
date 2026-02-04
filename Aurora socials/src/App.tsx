@@ -10,6 +10,7 @@ import SavedPosts from "./assets/components/SavedPosts.jsx";
 import Profile from "./assets/components/Profile.jsx";
 import PostView from "./assets/components/PostView.jsx";
 import Friends from "./assets/components/Friends.jsx";
+import Settings from "./assets/components/Settings.jsx";
 
 
 
@@ -81,6 +82,12 @@ const App = () => {
           <>
             <Navbar />
             <Friends />
+          </>
+        } />
+        <Route path="/settings" element={
+          <>
+            <Navbar />
+            <Settings />
           </>
         } />
         <Route path="/signin" element={<SignIn />} />

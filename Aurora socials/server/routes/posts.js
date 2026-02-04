@@ -2,8 +2,34 @@ import express from 'express';
 import pkg from '@prisma/client';
 const { PrismaClient } = pkg;
 const prisma = new PrismaClient();
+import { createNotification } from './notifications.js';
 
 const router = express.Router();
+
+// Helper function to extract hashtags from content
+function extractHashtags(content) {
+  const hashtagRegex = /#(\w+)/g;
+  const matches = content.match(hashtagRegex);
+  if (!matches) return [];
+  return [...new Set(matches.map(tag => tag.slice(1).toLowerCase()))];
+}
+
+// Helper function to create/link hashtags to a post
+async function linkHashtagsToPost(postId, hashtags) {
+  for (const tagName of hashtags) {
+    // Find or create the hashtag
+    let hashtag = await prisma.hashtag.findUnique({ where: { name: tagName } });
+    if (!hashtag) {
+      hashtag = await prisma.hashtag.create({ data: { name: tagName } });
+    }
+    // Link hashtag to post
+    await prisma.postHashtag.upsert({
+      where: { postId_hashtagId: { postId, hashtagId: hashtag.id } },
+      update: {},
+      create: { postId, hashtagId: hashtag.id }
+    });
+  }
+}
 
 // Get posts for feed
 router.get('/', async (req, res) => {
@@ -32,7 +58,10 @@ router.get('/', async (req, res) => {
           where: { parentId: null },
           orderBy: { createdAt: 'asc' }
         },
-        savedBy: true
+        savedBy: true,
+        hashtags: {
+          include: { hashtag: true }
+        }
       },
       orderBy: { createdAt: 'desc' },
       take: 20
@@ -41,6 +70,126 @@ router.get('/', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to fetch posts' });
+  }
+});
+
+// Get trending hashtags
+router.get('/trending/hashtags', async (req, res) => {
+  try {
+    // Get hashtags with most posts in the last 7 days
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    
+    const trending = await prisma.hashtag.findMany({
+      include: {
+        posts: {
+          where: {
+            createdAt: { gte: sevenDaysAgo }
+          },
+          include: {
+            post: true
+          }
+        }
+      }
+    });
+    
+    // Sort by post count and format response
+    const formattedTrending = trending
+      .map(tag => ({
+        id: tag.id,
+        name: tag.name,
+        postCount: tag.posts.length,
+        recentPosts: tag.posts.length
+      }))
+      .filter(tag => tag.postCount > 0)
+      .sort((a, b) => b.postCount - a.postCount)
+      .slice(0, 10);
+    
+    res.json(formattedTrending);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch trending hashtags' });
+  }
+});
+
+// Search posts by content or hashtag
+router.get('/search', async (req, res) => {
+  const { q } = req.query;
+  if (!q || q.trim().length < 2) {
+    return res.json([]);
+  }
+  
+  try {
+    const searchTerm = q.trim().toLowerCase();
+    
+    // Search in post content
+    const posts = await prisma.post.findMany({
+      where: {
+        content: {
+          contains: searchTerm
+        }
+      },
+      include: {
+        author: { select: { id: true, username: true, profilePicture: true } },
+        likes: true,
+        comments: true
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 20
+    });
+    
+    res.json(posts);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Search failed' });
+  }
+});
+
+// Get posts by hashtag
+router.get('/hashtag/:tag', async (req, res) => {
+  const { tag } = req.params;
+  try {
+    const hashtag = await prisma.hashtag.findUnique({
+      where: { name: tag.toLowerCase() },
+      include: {
+        posts: {
+          include: {
+            post: {
+              include: {
+                author: { select: { id: true, username: true, profilePicture: true } },
+                likes: true,
+                reactions: {
+                  include: {
+                    user: { select: { id: true, username: true } }
+                  }
+                },
+                comments: {
+                  include: { 
+                    author: { select: { id: true, username: true, profilePicture: true } },
+                    likes: true
+                  },
+                  where: { parentId: null }
+                },
+                savedBy: true,
+                hashtags: {
+                  include: { hashtag: true }
+                }
+              }
+            }
+          },
+          orderBy: { createdAt: 'desc' }
+        }
+      }
+    });
+    
+    if (!hashtag) {
+      return res.json({ tag, posts: [] });
+    }
+    
+    const posts = hashtag.posts.map(ph => ph.post);
+    res.json({ tag: hashtag.name, postCount: posts.length, posts });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch posts for hashtag' });
   }
 });
 
@@ -100,6 +249,13 @@ router.post('/', async (req, res) => {
         mediaUrl: mediaUrl || null
       }
     });
+    
+    // Extract and link hashtags
+    const hashtags = extractHashtags(content);
+    if (hashtags.length > 0) {
+      await linkHashtagsToPost(post.id, hashtags);
+    }
+    
     return res.json({ success: true, post });
   } catch (err) {
     console.error(err);
@@ -180,6 +336,27 @@ router.post('/:id/react', async (req, res) => {
       await prisma.reaction.create({
         data: { userId, postId, emoji, label, category }
       });
+      
+      // Get post author to send notification
+      const post = await prisma.post.findUnique({
+        where: { id: postId },
+        select: { authorId: true }
+      });
+      
+      if (post && post.authorId !== userId) {
+        const user = await prisma.user.findUnique({
+          where: { id: userId },
+          select: { username: true }
+        });
+        await createNotification({
+          userId: post.authorId,
+          fromUserId: userId,
+          type: 'reaction',
+          message: `${user?.username || 'Someone'} reacted ${emoji} to your post`,
+          postId
+        });
+      }
+      
       return res.json({ success: true, action: 'added' });
     }
   } catch (err) {

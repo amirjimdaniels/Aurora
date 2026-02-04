@@ -15,6 +15,7 @@ import usersRouter from './routes/users.js';
 import friendsRouter from './routes/friends.js';
 import followRouter from './routes/follow.js';
 import messagesRouter from './routes/messages.js';
+import notificationsRouter from './routes/notifications.js';
 
 
 const app = express();
@@ -22,7 +23,7 @@ const PORT = 5000;
 const SALT_ROUNDS = 10;
 
 
-// No more in-memory user store; using Prisma/SQLite
+// No more in-memory user store; using Prisma/PostgreSQL
 
 app.use(cors({
   origin: ['http://localhost:5173', 'http://localhost:5174'],
@@ -43,6 +44,7 @@ app.use('/api/users', usersRouter);
 app.use('/api/friends', friendsRouter);
 app.use('/api/follow', followRouter);
 app.use('/api/messages', messagesRouter);
+app.use('/api/notifications', notificationsRouter);
 
 
 // Registration endpoint using Prisma
