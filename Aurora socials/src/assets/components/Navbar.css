@@ -10,35 +10,48 @@
   top: 0;
   left: 0;
   right: 0;
-  z-index: 1000;   /* ensure it sits above page content */
-  background: #111; /* keep existing background or use your own */
+  z-index: 1000;
+  background: linear-gradient(180deg, rgba(5, 10, 20, 0.98) 0%, rgba(10, 16, 32, 0.95) 100%);
+  backdrop-filter: blur(20px);
   display: flex;
-  padding: 10px 20px;
+  padding: 12px 24px;
   align-items: center;
   justify-content: space-between;
+  border-bottom: 1px solid rgba(139, 92, 246, 0.15);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3),
+              0 0 50px rgba(139, 92, 246, 0.05);
 }
 
 .navbar .logo {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   object-fit: contain;
   display: block;
   margin-left: auto;
   margin-right: auto;
+  filter: drop-shadow(0 0 10px rgba(6, 182, 212, 0.3));
+  transition: filter 0.3s ease;
+}
+
+.navbar .logo:hover {
+  filter: drop-shadow(0 0 15px rgba(139, 92, 246, 0.5));
 }
 
 .logo-text {
-  color: #cbd5e1;
-  font-size: 1rem;
+  background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 50%, #ec4899 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-size: 1.1rem;
   text-align: center;
-  margin-top: 0.05px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  margin-top: 2px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
 }
 
 .navbar ul {
   display: flex;
-  gap: 18px;
+  gap: 8px;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -50,46 +63,92 @@
 }
 
 .navbar a {
-  color: #cbd5e1; /* light gray */
+  color: #94a3b8;
   text-decoration: none;
-  padding: 6px 10px;
-  border-radius: 8px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  position: relative;
 }
 
-.navbar a:hover,
-.nav-button:hover {
-  background: rgba(255,255,255,0.04);
+.navbar a::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #06b6d4, #8b5cf6);
+  transition: all 0.3s ease;
+  transform: translateX(-50%);
+  border-radius: 1px;
+}
+
+.navbar a:hover {
+  color: #f1f5f9;
+  background: rgba(139, 92, 246, 0.08);
+}
+
+.navbar a:hover::before {
+  width: 60%;
 }
 
 /* Shared button style for Explore/Search */
 .nav-button {
-  background: transparent;
-  color: #cbd5e1;
-  border: 1px solid rgba(255,255,255,0.06);
-  padding: 6px 12px;
-  border-radius: 8px;
+  background: rgba(139, 92, 246, 0.1);
+  color: #a78bfa;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  padding: 8px 14px;
+  border-radius: 10px;
   cursor: pointer;
   font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.nav-button:hover {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: rgba(139, 92, 246, 0.4);
+  color: #c4b5fd;
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.15);
 }
 
 .nav-button:focus {
-  outline: 3px solid rgba(99,102,241,0.16);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+}
+
+/* Hide mobile menu toggle on desktop */
+.mobile-toggle {
+  display: none;
 }
 
 .searchbox {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .search-input {
   display: inline-block;
-  width: 200px;
-  padding: 6px 8px;
-  border-radius: 6px;
-  border: 1px solid rgba(255,255,255,0.06);
-  background: #0f1724;
+  width: 220px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: rgba(15, 23, 42, 0.8);
   color: #e2e8f0;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #8b5cf6;
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.15);
+}
+
+.search-input::placeholder {
+  color: #64748b;
 }
 
 /* Hidden by default on small screens; will be toggled with .show */
@@ -100,8 +159,13 @@
 /* Mobile: stack items when menu open */
 @media (max-width: 640px) {
   .navbar {
-    padding: 12px;
+    padding: 10px 15px;
   }
+  
+  .mobile-toggle {
+    display: block;
+  }
+  
   .navbar ul {
     display: none;
     flex-direction: column;
@@ -113,6 +177,6 @@
   }
 
   .search-input {
-    width: 140px;
+    width: 160px;
   }
 }

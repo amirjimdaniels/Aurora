@@ -2,7 +2,7 @@ import axios from "../../api/axios.js";
 import "./Profile.css";
 import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { FaCamera, FaEdit, FaMapMarkerAlt, FaBirthdayCake, FaCalendarAlt, FaTimes } from "react-icons/fa";
+import { FaCamera, FaEdit, FaMapMarkerAlt, FaBirthdayCake, FaCalendarAlt, FaTimes, FaCommentDots } from "react-icons/fa";
 import { RiUserFollowLine, RiUserUnfollowLine } from "react-icons/ri";
 import PostCard from "./PostCard.jsx";
 
@@ -14,6 +14,7 @@ const Profile = () => {
   const isOwnProfile = profileUserId === currentUserId;
 
   const [user, setUser] = useState(null);
+  const [myProfile, setMyProfile] = useState({ username: '', profilePicture: null });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [editMode, setEditMode] = useState(false);
@@ -26,6 +27,7 @@ const Profile = () => {
   const profilePicInputRef = useRef(null);
   const coverPhotoInputRef = useRef(null);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [theyFollowMe, setTheyFollowMe] = useState(false);
   const [followCounts, setFollowCounts] = useState({ followers: 0, following: 0 });
   const [followModal, setFollowModal] = useState(null); // 'followers' or 'following' or null
   const [followersList, setFollowersList] = useState([]);
@@ -73,6 +75,18 @@ const Profile = () => {
         setEditProfilePic(response.data.profilePicture || "");
         setEditCoverPhoto(response.data.coverPhoto || "");
 
+        // Fetch logged-in user's profile for comment input
+        if (isOwnProfile) {
+          setMyProfile({ username: response.data.username, profilePicture: response.data.profilePicture });
+        } else if (currentUserId) {
+          try {
+            const myRes = await axios.get(`/api/users/${currentUserId}`);
+            setMyProfile({ username: myRes.data.username, profilePicture: myRes.data.profilePicture });
+          } catch (err) {
+            console.error('Failed to fetch logged-in user profile');
+          }
+        }
+
         // Fetch follow counts
         try {
           const countsRes = await axios.get(`/api/follow/counts/${profileUserId}`);
@@ -86,8 +100,12 @@ const Profile = () => {
           try {
             const followRes = await axios.get(`/api/follow/status/${currentUserId}/${profileUserId}`);
             setIsFollowing(followRes.data.isFollowing);
+            // Also check if they follow me back (for friend/message status)
+            const theyFollowRes = await axios.get(`/api/follow/status/${profileUserId}/${currentUserId}`);
+            setTheyFollowMe(theyFollowRes.data.isFollowing);
           } catch (err) {
             setIsFollowing(false);
+            setTheyFollowMe(false);
           }
         }
       } catch (err) {
@@ -320,7 +338,7 @@ const Profile = () => {
                 onClick={handleUnfollow}
                 style={{ background: '#3a3b3c' }}
               >
-                <RiUserUnfollowLine /> Following
+                <RiUserUnfollowLine style={{ fontSize: '1rem' }} /> Following
               </button>
             ) : (
               <button
@@ -328,7 +346,17 @@ const Profile = () => {
                 onClick={handleFollow}
                 style={{ background: '#2078f4' }}
               >
-                <RiUserFollowLine /> Follow
+                <RiUserFollowLine style={{ fontSize: '1rem' }} /> Follow
+              </button>
+            )}
+            {/* Message button - show only if mutual followers (friends) */}
+            {isFollowing && theyFollowMe && (
+              <button
+                className="edit-profile-btn"
+                onClick={() => navigate('/feed', { state: { openChat: { id: profileUserId, username: user?.username, profilePicture: user?.profilePicture } } })}
+                style={{ background: 'linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%)' }}
+              >
+                <FaCommentDots style={{ fontSize: '1rem' }} /> Message
               </button>
             )}
           </div>
@@ -494,6 +522,8 @@ const Profile = () => {
                       author: { id: user.id, username: user.username, profilePicture: user.profilePicture }
                     }}
                     currentUserId={currentUserId}
+                    currentUserProfile={myProfile.profilePicture}
+                    currentUsername={myProfile.username}
                     onPostUpdate={refreshUserData}
                     showDeleteButton={isOwnProfile}
                   />

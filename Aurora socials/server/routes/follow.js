@@ -4,6 +4,14 @@ import { PrismaClient } from '@prisma/client';
 const router = express.Router();
 const prisma = new PrismaClient();
 
+// Bot username for auto-follow feature
+const BOT_USERNAME = 'AuroraBot';
+
+// Helper function to check if user is the bot
+async function getBotUser() {
+  return await prisma.user.findUnique({ where: { username: BOT_USERNAME } });
+}
+
 // Follow a user
 router.post('/follow', async (req, res) => {
   const { followerId, followingId } = req.body;
@@ -24,6 +32,22 @@ router.post('/follow', async (req, res) => {
     const follow = await prisma.follow.create({
       data: { followerId, followingId }
     });
+    
+    // Bot auto-follow back feature
+    const botUser = await getBotUser();
+    if (botUser && followingId === botUser.id) {
+      // Check if bot already follows back
+      const botFollowsBack = await prisma.follow.findUnique({
+        where: { followerId_followingId: { followerId: botUser.id, followingId: followerId } }
+      });
+      
+      if (!botFollowsBack) {
+        await prisma.follow.create({
+          data: { followerId: botUser.id, followingId: followerId }
+        });
+        console.log(`[Bot] Auto-followed back user ${followerId}`);
+      }
+    }
     
     res.json(follow);
   } catch (err) {

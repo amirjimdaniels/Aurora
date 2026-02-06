@@ -1,0 +1,408 @@
+/* Aurora Borealis Theme - Global Styles */
+
+/* Color Palette */
+:root {
+  /* Primary Aurora Colors */
+  --aurora-cyan: #06b6d4;
+  --aurora-teal: #14b8a6;
+  --aurora-purple: #8b5cf6;
+  --aurora-violet: #a78bfa;
+  --aurora-magenta: #ec4899;
+  --aurora-pink: #f472b6;
+  --aurora-indigo: #6366f1;
+  
+  /* Background Colors */
+  --aurora-bg-dark: #050a14;
+  --aurora-bg-primary: #0a1020;
+  --aurora-bg-secondary: #0f172a;
+  --aurora-bg-card: #131c2e;
+  --aurora-bg-elevated: #1e293b;
+  
+  /* Text Colors */
+  --aurora-text-primary: #f1f5f9;
+  --aurora-text-secondary: #94a3b8;
+  --aurora-text-muted: #64748b;
+  
+  /* Border Colors */
+  --aurora-border: rgba(139, 92, 246, 0.15);
+  --aurora-border-active: rgba(139, 92, 246, 0.4);
+  
+  /* Gradients */
+  --aurora-gradient-primary: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 50%, #ec4899 100%);
+  --aurora-gradient-secondary: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%);
+  --aurora-gradient-warm: linear-gradient(135deg, #f59e0b 0%, #ec4899 100%);
+  --aurora-gradient-cool: linear-gradient(135deg, #14b8a6 0%, #6366f1 100%);
+  
+  /* Glow Effects */
+  --aurora-glow-cyan: 0 0 30px rgba(6, 182, 212, 0.3), 0 0 60px rgba(6, 182, 212, 0.1);
+  --aurora-glow-purple: 0 0 30px rgba(139, 92, 246, 0.3), 0 0 60px rgba(139, 92, 246, 0.1);
+  --aurora-glow-mixed: 0 0 40px rgba(6, 182, 212, 0.2), 0 0 80px rgba(139, 92, 246, 0.15);
+}
+
+/* Global Aurora Background */
+body {
+  background: var(--aurora-bg-primary);
+}
+
+/* Aurora Shimmer Animation */
+@keyframes aurora-shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Aurora Pulse Animation */
+@keyframes aurora-pulse {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+}
+
+/* Aurora Float Animation */
+@keyframes aurora-float {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-10px) rotate(1deg);
+  }
+  75% {
+    transform: translateY(5px) rotate(-1deg);
+  }
+}
+
+/* Aurora Glow Text */
+.aurora-text-glow {
+  background: var(--aurora-gradient-primary);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: aurora-shimmer 6s ease-in-out infinite;
+}
+
+/* Aurora Card Style */
+.aurora-card {
+  background: linear-gradient(145deg, var(--aurora-bg-card) 0%, var(--aurora-bg-secondary) 100%);
+  border: 1px solid var(--aurora-border);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3),
+              inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  transition: all 0.3s ease;
+}
+
+.aurora-card:hover {
+  border-color: var(--aurora-border-active);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4),
+              var(--aurora-glow-mixed);
+}
+
+/* Aurora Button Primary */
+.aurora-btn-primary {
+  background: var(--aurora-gradient-secondary);
+  border: none;
+  color: #fff;
+  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.aurora-btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.aurora-btn-primary:hover::before {
+  left: 100%;
+}
+
+.aurora-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--aurora-glow-purple);
+}
+
+/* Aurora Input */
+.aurora-input {
+  background: var(--aurora-bg-secondary);
+  border: 1px solid var(--aurora-border);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  color: var(--aurora-text-primary);
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+}
+
+.aurora-input:focus {
+  outline: none;
+  border-color: var(--aurora-purple);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
+.aurora-input::placeholder {
+  color: var(--aurora-text-muted);
+}
+
+/* Aurora Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--aurora-bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--aurora-cyan) 0%, var(--aurora-purple) 100%);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--aurora-purple) 0%, var(--aurora-magenta) 100%);
+}
+
+/* Aurora Background Effects Component */
+.aurora-effects {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.aurora-effects::before,
+.aurora-effects::after {
+  content: '';
+  position: absolute;
+  width: 150%;
+  height: 150%;
+  opacity: 0.15;
+  filter: blur(80px);
+}
+
+.aurora-effects::before {
+  top: -50%;
+  left: -25%;
+  background: radial-gradient(ellipse at 30% 30%, var(--aurora-cyan) 0%, transparent 50%),
+              radial-gradient(ellipse at 70% 70%, var(--aurora-purple) 0%, transparent 50%);
+  animation: aurora-float 30s ease-in-out infinite;
+}
+
+.aurora-effects::after {
+  bottom: -50%;
+  right: -25%;
+  background: radial-gradient(ellipse at 60% 40%, var(--aurora-magenta) 0%, transparent 45%),
+              radial-gradient(ellipse at 20% 80%, var(--aurora-indigo) 0%, transparent 40%);
+  animation: aurora-float 25s ease-in-out infinite reverse;
+}
+
+/* Selection Color */
+::selection {
+  background: rgba(139, 92, 246, 0.3);
+  color: #fff;
+}
+
+/* Aurora Tag/Badge */
+.aurora-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.75rem;
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 20px;
+  font-size: 0.8rem;
+  color: var(--aurora-violet);
+  font-weight: 500;
+}
+
+/* Aurora Link */
+.aurora-link {
+  color: var(--aurora-cyan);
+  text-decoration: none;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.aurora-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--aurora-gradient-secondary);
+  transition: width 0.3s ease;
+}
+
+.aurora-link:hover {
+  color: var(--aurora-violet);
+}
+
+.aurora-link:hover::after {
+  width: 100%;
+}
+
+/* Aurora Divider */
+.aurora-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--aurora-border-active) 50%, transparent 100%);
+  margin: 1rem 0;
+}
+
+/* Aurora Icon Button */
+.aurora-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--aurora-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.aurora-icon-btn:hover {
+  background: rgba(139, 92, 246, 0.1);
+  border-color: var(--aurora-border);
+  color: var(--aurora-violet);
+}
+
+/* Aurora Toggle */
+.aurora-toggle {
+  position: relative;
+  width: 48px;
+  height: 26px;
+  background: var(--aurora-bg-elevated);
+  border-radius: 13px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid var(--aurora-border);
+}
+
+.aurora-toggle.active {
+  background: var(--aurora-gradient-secondary);
+  border-color: transparent;
+}
+
+.aurora-toggle::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+}
+
+.aurora-toggle.active::after {
+  transform: translateX(22px);
+}
+
+/* Aurora Notification Dot */
+.aurora-notification-dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 10px;
+  height: 10px;
+  background: var(--aurora-gradient-warm);
+  border-radius: 50%;
+  border: 2px solid var(--aurora-bg-secondary);
+  animation: aurora-pulse 2s ease-in-out infinite;
+}
+
+/* Aurora Skeleton Loading */
+.aurora-skeleton {
+  background: linear-gradient(90deg, 
+    var(--aurora-bg-card) 0%, 
+    var(--aurora-bg-elevated) 50%, 
+    var(--aurora-bg-card) 100%);
+  background-size: 200% 100%;
+  animation: aurora-shimmer 1.5s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+/* Aurora Tooltip */
+.aurora-tooltip {
+  position: relative;
+}
+
+.aurora-tooltip::before {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-8px);
+  padding: 0.5rem 0.75rem;
+  background: var(--aurora-bg-elevated);
+  border: 1px solid var(--aurora-border);
+  border-radius: 8px;
+  color: var(--aurora-text-primary);
+  font-size: 0.8rem;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+}
+
+.aurora-tooltip:hover::before {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Aurora Progress Bar */
+.aurora-progress {
+  height: 4px;
+  background: var(--aurora-bg-elevated);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.aurora-progress-bar {
+  height: 100%;
+  background: var(--aurora-gradient-secondary);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+/* Aurora Avatar Ring */
+.aurora-avatar-ring {
+  padding: 2px;
+  background: var(--aurora-gradient-primary);
+  border-radius: 50%;
+}
+
+.aurora-avatar-ring img {
+  border-radius: 50%;
+  border: 2px solid var(--aurora-bg-secondary);
+}

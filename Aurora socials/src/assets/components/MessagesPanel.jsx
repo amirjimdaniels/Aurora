@@ -1,10 +1,10 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "../../api/axios.js";
 import { FaTimes, FaChevronLeft, FaUserFriends, FaUsers } from "react-icons/fa";
 import { IoChatbubbleEllipses, IoSend } from "react-icons/io5";
 
-const MessagesPanel = ({ isOpen, onClose }) => {
+const MessagesPanel = ({ isOpen, onClose, initialChat }) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('friends'); // 'friends' or 'followers'
   const [friends, setFriends] = useState([]);
@@ -13,9 +13,25 @@ const MessagesPanel = ({ isOpen, onClose }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
+  const [isPartnerTyping, setIsPartnerTyping] = useState(false);
   const messagesEndRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
 
   const userId = Number(localStorage.getItem('userId'));
+
+  // Handle initialChat prop to open a specific chat
+  useEffect(() => {
+    if (isOpen && initialChat) {
+      setSelectedChat(initialChat);
+    }
+  }, [isOpen, initialChat]);
+
+  // Reset selectedChat when panel closes
+  useEffect(() => {
+    if (!isOpen) {
+      setSelectedChat(null);
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen && userId) {
@@ -32,6 +48,69 @@ const MessagesPanel = ({ isOpen, onClose }) => {
       return () => clearInterval(interval);
     }
   }, [selectedChat]);
+
+  // Poll for typing indicators
+  useEffect(() => {
+    if (selectedChat) {
+      const checkTyping = async () => {
+        try {
+          const res = await axios.get(`/api/messages/typing/${userId}/${selectedChat.id}`);
+          setIsPartnerTyping(res.data.isTyping);
+        } catch (err) {
+          console.error(err);
+        }
+      };
+      
+      checkTyping();
+      const interval = setInterval(checkTyping, 1000);
+      return () => clearInterval(interval);
+    } else {
+      setIsPartnerTyping(false);
+    }
+  }, [selectedChat, userId]);
+
+  // Send typing indicator
+  const sendTypingIndicator = useCallback(async () => {
+    if (!selectedChat) return;
+    try {
+      await axios.post('/api/messages/typing', {
+        senderId: userId,
+        receiverId: selectedChat.id
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  }, [selectedChat, userId]);
+
+  // Stop typing indicator
+  const stopTypingIndicator = useCallback(async () => {
+    if (!selectedChat) return;
+    try {
+      await axios.post('/api/messages/stop-typing', {
+        senderId: userId,
+        receiverId: selectedChat.id
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  }, [selectedChat, userId]);
+
+  const handleInputChange = (e) => {
+    setNewMessage(e.target.value);
+    
+    // Send typing indicator
+    sendTypingIndicator();
+    
+    // Clear previous timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    
+    // Set timeout to stop typing
+    typingTimeoutRef.current = setTimeout(() => {
+      stopTypingIndicator();
+    }, 2000);
+  };
 
   useEffect(() => {
     scrollToBottom();
@@ -76,6 +155,12 @@ const MessagesPanel = ({ isOpen, onClose }) => {
     if (!newMessage.trim() || !selectedChat) return;
 
     try {
+      // Stop typing indicator when sending
+      stopTypingIndicator();
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+      
       await axios.post('/api/messages/send', {
         senderId: userId,
         receiverId: selectedChat.id,
@@ -130,7 +215,7 @@ const MessagesPanel = ({ isOpen, onClose }) => {
                   cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem'
                 }}
               >
-                <FaChevronLeft /> Back
+                <FaChevronLeft size={14} color="#e4e6eb" /> Back
               </button>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                 <div style={{
@@ -149,7 +234,7 @@ const MessagesPanel = ({ isOpen, onClose }) => {
           ) : (
             <>
               <h2 style={{ margin: 0, color: '#e4e6eb', fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <IoChatbubbleEllipses /> Messages
+                <IoChatbubbleEllipses size={20} color="#e4e6eb" /> Messages
               </h2>
             </>
           )}
@@ -158,10 +243,11 @@ const MessagesPanel = ({ isOpen, onClose }) => {
             style={{
               background: '#3a3b3c', border: 'none', color: '#e4e6eb',
               width: '32px', height: '32px', borderRadius: '50%',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
+              display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+              fontSize: '1rem'
             }}
           >
-            <FaTimes />
+            <FaTimes size={16} color="#e4e6eb" />
           </button>
         </div>
 
@@ -178,7 +264,7 @@ const MessagesPanel = ({ isOpen, onClose }) => {
                   fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem'
                 }}
               >
-                <FaUserFriends /> Friends ({friends.length})
+                <FaUserFriends size={14} /> Friends ({friends.length})
               </button>
               <button
                 onClick={() => setActiveTab('followers')}
@@ -189,7 +275,7 @@ const MessagesPanel = ({ isOpen, onClose }) => {
                   fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem'
                 }}
               >
-                <FaUsers /> Followers ({followers.length})
+                <FaUsers size={14} /> Followers ({followers.length})
               </button>
             </div>
 
@@ -297,6 +383,23 @@ const MessagesPanel = ({ isOpen, onClose }) => {
                   </div>
                 ))
               )}
+              {/* Typing indicator */}
+              {isPartnerTyping && (
+                <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: '0.5rem' }}>
+                  <div style={{
+                    background: '#3a3b3c',
+                    padding: '0.5rem 1rem',
+                    borderRadius: '18px',
+                    display: 'flex',
+                    gap: '4px',
+                    alignItems: 'center'
+                  }}>
+                    <div className="typing-dot" style={{ animationDelay: '0ms' }} />
+                    <div className="typing-dot" style={{ animationDelay: '150ms' }} />
+                    <div className="typing-dot" style={{ animationDelay: '300ms' }} />
+                  </div>
+                </div>
+              )}
               <div ref={messagesEndRef} />
             </div>
 
@@ -308,7 +411,7 @@ const MessagesPanel = ({ isOpen, onClose }) => {
               <input
                 type="text"
                 value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
+                onChange={handleInputChange}
                 placeholder="Type a message..."
                 style={{
                   flex: 1, padding: '0.75rem 1rem', borderRadius: '20px',
@@ -323,10 +426,11 @@ const MessagesPanel = ({ isOpen, onClose }) => {
                   width: '40px', height: '40px', borderRadius: '50%',
                   background: newMessage.trim() ? '#2078f4' : '#3a3b3c',
                   border: 'none', color: '#fff', cursor: newMessage.trim() ? 'pointer' : 'default',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center'
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '1.1rem'
                 }}
               >
-                <IoSend />
+                <IoSend size={18} color="#fff" />
               </button>
             </form>
           </>
@@ -337,6 +441,17 @@ const MessagesPanel = ({ isOpen, onClose }) => {
         @keyframes slideIn {
           from { transform: translateX(-100%); }
           to { transform: translateX(0); }
+        }
+        @keyframes typingBounce {
+          0%, 60%, 100% { transform: translateY(0); }
+          30% { transform: translateY(-6px); }
+        }
+        .typing-dot {
+          width: 8px;
+          height: 8px;
+          background: #b0b3b8;
+          border-radius: 50%;
+          animation: typingBounce 1.4s infinite ease-in-out;
         }
       `}</style>
     </>

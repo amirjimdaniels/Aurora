@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState } from 'react';
 import Navbar from "./assets/components/Navbar.jsx";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
@@ -11,6 +11,8 @@ import Profile from "./assets/components/Profile.jsx";
 import PostView from "./assets/components/PostView.jsx";
 import Friends from "./assets/components/Friends.jsx";
 import Settings from "./assets/components/Settings.jsx";
+import Support from "./assets/components/Support.jsx";
+import IconTest from "./assets/components/IconTest.jsx";
 
 
 
@@ -36,6 +38,8 @@ function Home() {
 
 
 const App = () => {
+  const [exploreSearchQuery, setExploreSearchQuery] = useState('');
+
   return (
     <Router>
       <Routes>
@@ -50,8 +54,8 @@ const App = () => {
         } />
         <Route path="/feed" element={
           <>
-            <Navbar />
-            <LandingPage />
+            <Navbar searchQuery={exploreSearchQuery} onSearchChange={setExploreSearchQuery} />
+            <LandingPage searchQuery={exploreSearchQuery} />
           </>
         } />
         <Route path="/saved" element={
@@ -90,8 +94,20 @@ const App = () => {
             <Settings />
           </>
         } />
+        <Route path="/support" element={
+          <>
+            <Navbar />
+            <Support />
+          </>
+        } />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/icon-test" element={
+          <>
+            <Navbar />
+            <IconTest />
+          </>
+        } />
         {/* Add more routes as needed */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

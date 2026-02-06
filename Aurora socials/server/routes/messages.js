@@ -4,6 +4,29 @@ import { PrismaClient } from '@prisma/client';
 const router = express.Router();
 const prisma = new PrismaClient();
 
+// Bot configuration
+const BOT_USERNAME = 'AuroraBot';
+const BOT_RESPONSES = [
+  "Hey there! 👋 I'm AuroraBot, your friendly testing companion!",
+  "Thanks for messaging me! I'm here to help test the chat feature. 🤖",
+  "Beep boop! 🤖 Message received loud and clear!",
+  "Hello! I auto-reply to all messages. Pretty cool, right? ✨",
+  "Hi! I'm just a bot, but I appreciate the conversation! 💬",
+  "Aurora Socials is awesome! Thanks for testing with me! 🚀",
+  "I got your message! Everything seems to be working great! ✅",
+  "Greetings, human! 🤖 Your message has been processed successfully.",
+];
+
+// Helper function to get bot user
+async function getBotUser() {
+  return await prisma.user.findUnique({ where: { username: BOT_USERNAME } });
+}
+
+// Get a random bot response
+function getRandomBotResponse() {
+  return BOT_RESPONSES[Math.floor(Math.random() * BOT_RESPONSES.length)];
+}
+
 // Get friends (mutual followers) for a user
 router.get('/friends/:userId', async (req, res) => {
   const { userId } = req.params;
@@ -85,6 +108,26 @@ router.post('/send', async (req, res) => {
         receiver: { select: { id: true, username: true, profilePicture: true } }
       }
     });
+    
+    // Bot auto-reply feature
+    const botUser = await getBotUser();
+    if (botUser && receiverId === botUser.id) {
+      // Delay the reply slightly to make it feel more natural
+      setTimeout(async () => {
+        try {
+          await prisma.message.create({
+            data: {
+              senderId: botUser.id,
+              receiverId: senderId,
+              content: getRandomBotResponse()
+            }
+          });
+          console.log(`[Bot] Auto-replied to user ${senderId}`);
+        } catch (err) {
+          console.error('[Bot] Failed to auto-reply:', err);
+        }
+      }, 500);
+    }
     
     res.json(message);
   } catch (err) {
@@ -181,6 +224,74 @@ router.get('/unread/:userId', async (req, res) => {
     console.error(err);
     res.status(500).json({ error: 'Failed to get unread count' });
   }
+});
+
+// In-memory store for typing indicators (clears automatically after timeout)
+const typingUsers = new Map();
+const TYPING_TIMEOUT = 3000; // 3 seconds
+
+// Set typing status
+router.post('/typing', (req, res) => {
+  const { senderId, receiverId } = req.body;
+  const key = `${senderId}-${receiverId}`;
+  
+  // Clear existing timeout for this typing session
+  if (typingUsers.has(key)) {
+    clearTimeout(typingUsers.get(key).timeout);
+  }
+  
+  // Set new typing status with auto-clear timeout
+  typingUsers.set(key, {
+    senderId: Number(senderId),
+    receiverId: Number(receiverId),
+    timestamp: Date.now(),
+    timeout: setTimeout(() => {
+      typingUsers.delete(key);
+    }, TYPING_TIMEOUT)
+  });
+  
+  res.json({ success: true });
+});
+
+// Stop typing (explicit clear)
+router.post('/stop-typing', (req, res) => {
+  const { senderId, receiverId } = req.body;
+  const key = `${senderId}-${receiverId}`;
+  
+  if (typingUsers.has(key)) {
+    clearTimeout(typingUsers.get(key).timeout);
+    typingUsers.delete(key);
+  }
+  
+  res.json({ success: true });
+});
+
+// Check if someone is typing to me
+router.get('/typing/:userId', (req, res) => {
+  const { userId } = req.params;
+  const myId = Number(userId);
+  
+  const typingToMe = [];
+  
+  for (const [key, value] of typingUsers.entries()) {
+    if (value.receiverId === myId) {
+      typingToMe.push({
+        userId: value.senderId,
+        timestamp: value.timestamp
+      });
+    }
+  }
+  
+  res.json(typingToMe);
+});
+
+// Check if specific user is typing to me
+router.get('/typing/:userId/:otherUserId', (req, res) => {
+  const { userId, otherUserId } = req.params;
+  const key = `${otherUserId}-${userId}`;
+  
+  const isTyping = typingUsers.has(key);
+  res.json({ isTyping });
 });
 
 export default router;

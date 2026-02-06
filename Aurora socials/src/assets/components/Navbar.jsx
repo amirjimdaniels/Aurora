@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FaSignOutAlt, FaCog, FaMoon, FaSun, FaSearch, FaBell, FaTimes } from 'react-icons/fa'
+import { FaSignOutAlt, FaCog, FaMoon, FaSun, FaSearch, FaBell, FaTimes, FaCode } from 'react-icons/fa'
 import axios from '../../api/axios.js'
 import './Navbar.css'
 import NotificationsPanel from './NotificationsPanel.jsx'
 
-const Navbar = () => {
+const Navbar = ({ searchQuery: externalSearchQuery, onSearchChange }) => {
   const navigate = useNavigate()
   const [open, setOpen] = useState(false) // mobile menu
   const [searchOpen, setSearchOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
+  // Use external search query if provided, otherwise use local state
+  const [localSearchQuery, setLocalSearchQuery] = useState('')
+  const searchQuery = externalSearchQuery !== undefined ? externalSearchQuery : localSearchQuery
+  const setSearchQuery = onSearchChange || setLocalSearchQuery
   const [searchResults, setSearchResults] = useState([])
   const [showSearchResults, setShowSearchResults] = useState(false)
   const [imgError, setImgError] = useState(false)
@@ -17,30 +20,44 @@ const Navbar = () => {
   const [profilePicture, setProfilePicture] = useState(null)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
+  const [isDeveloper, setIsDeveloper] = useState(false)
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
     return saved !== null ? JSON.parse(saved) : true;
   });
+  
+  // Developer mode toggle (only visible if user.isDeveloper is true in DB)
+  const [devMode, setDevMode] = useState(() => {
+    const saved = localStorage.getItem('devMode');
+    return saved !== null ? JSON.parse(saved) : false;
+  });
+  
+  const toggleDevMode = () => {
+    const newValue = !devMode;
+    setDevMode(newValue);
+    localStorage.setItem('devMode', JSON.stringify(newValue));
+  };
 
   const username = localStorage.getItem('username') || 'User'
   const userId = localStorage.getItem('userId')
 
   // Fetch user profile picture
   useEffect(() => {
-    const fetchProfilePic = async () => {
+    const fetchUserData = async () => {
       if (userId) {
         try {
           const response = await axios.get(`/api/users/${userId}`)
           setProfilePicture(response.data.profilePicture)
+          setIsDeveloper(response.data.isDeveloper || false)
         } catch (err) {
-          console.error('Failed to fetch profile picture')
+          console.error('Failed to fetch user data')
         }
       }
     }
-    fetchProfilePic()
+    fetchUserData()
     
     // Listen for profile updates
-    const handleProfileUpdate = () => fetchProfilePic()
+    const handleProfileUpdate = () => fetchUserData()
     window.addEventListener('profileUpdated', handleProfileUpdate)
     return () => window.removeEventListener('profileUpdated', handleProfileUpdate)
   }, [userId])
@@ -138,7 +155,8 @@ const Navbar = () => {
       <ul id="main-nav" className={open ? 'open' : ''}>
         <li><a href="#home" onClick={(e) => { e.preventDefault(); navigate('/feed'); }}>Home</a></li>
         <li><a href="#profile" onClick={(e) => { e.preventDefault(); navigate('/profile'); }}>Profile</a></li>
-        <li><a href="#support">Support</a></li>
+        <li><a href="#support" onClick={(e) => { e.preventDefault(); navigate('/support'); }}>Support</a></li>
+        {devMode && <li><a href="#icon-test" onClick={(e) => { e.preventDefault(); navigate('/icon-test'); }} style={{ color: '#ff6b6b' }}>Icon Test</a></li>}
         <li>
           <button
             className="nav-button"
@@ -185,7 +203,7 @@ const Navbar = () => {
                 padding: '4px'
               }}
             >
-              <FaTimes />
+              <FaTimes size={14} color="#64748b" />
             </button>
           )}
         </div>
@@ -376,6 +394,20 @@ const Navbar = () => {
               </span>
               <span style={{ fontSize: '0.75rem', color: '#64748b' }}>On</span>
             </button>
+
+            {/* Developer Mode Toggle - Only for users with isDeveloper=true in DB */}
+            {isDeveloper && (
+              <button
+                onClick={() => toggleDevMode()}
+                style={{ width: '100%', padding: '0.75rem 1rem', background: 'none', border: 'none', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', fontSize: '0.95rem', textAlign: 'left' }}
+              >
+                <span style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <FaCode style={{ color: devMode ? '#22c55e' : '#64748b' }} />
+                  Developer Mode
+                </span>
+                <span style={{ fontSize: '0.75rem', color: devMode ? '#22c55e' : '#64748b' }}>{devMode ? 'On' : 'Off'}</span>
+              </button>
+            )}
 
             <button
               onClick={() => { setShowProfileMenu(false); navigate('/settings'); }}

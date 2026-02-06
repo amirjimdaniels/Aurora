@@ -57,6 +57,31 @@ router.post('/accept', async (req, res) => {
       where: { id: friendshipId },
       data: { status: 'accepted' }
     });
+    
+    // Create mutual follows so they appear as friends
+    const senderId = friendship.senderId;
+    const receiverId = friendship.receiverId;
+    
+    // Create follow: sender -> receiver (if doesn't exist)
+    const senderFollowsReceiver = await prisma.follow.findUnique({
+      where: { followerId_followingId: { followerId: senderId, followingId: receiverId } }
+    });
+    if (!senderFollowsReceiver) {
+      await prisma.follow.create({
+        data: { followerId: senderId, followingId: receiverId }
+      });
+    }
+    
+    // Create follow: receiver -> sender (if doesn't exist)
+    const receiverFollowsSender = await prisma.follow.findUnique({
+      where: { followerId_followingId: { followerId: receiverId, followingId: senderId } }
+    });
+    if (!receiverFollowsSender) {
+      await prisma.follow.create({
+        data: { followerId: receiverId, followingId: senderId }
+      });
+    }
+    
     return res.json({ success: true, friendship: updated });
   } catch (err) {
     console.error(err);

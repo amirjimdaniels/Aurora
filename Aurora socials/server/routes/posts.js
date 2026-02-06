@@ -61,6 +61,15 @@ router.get('/', async (req, res) => {
         savedBy: true,
         hashtags: {
           include: { hashtag: true }
+        },
+        poll: {
+          include: {
+            options: {
+              include: {
+                votes: true
+              }
+            }
+          }
         }
       },
       orderBy: { createdAt: 'desc' },
@@ -237,7 +246,7 @@ router.get('/:id', async (req, res) => {
 
 // Create a new post
 router.post('/', async (req, res) => {
-  const { userId, content, mediaUrl } = req.body;
+  const { userId, content, mediaUrl, pollOptions, pollQuestion } = req.body;
   if (!userId || !content) {
     return res.status(400).json({ success: false, message: 'User ID and content required.' });
   }
@@ -256,7 +265,37 @@ router.post('/', async (req, res) => {
       await linkHashtagsToPost(post.id, hashtags);
     }
     
-    return res.json({ success: true, post });
+    // Create poll if options provided
+    if (pollOptions && pollOptions.length >= 2) {
+      await prisma.poll.create({
+        data: {
+          postId: post.id,
+          question: pollQuestion || 'What do you think?',
+          options: {
+            create: pollOptions.map(text => ({ text }))
+          }
+        }
+      });
+    }
+    
+    // Fetch the complete post with all relations
+    const fullPost = await prisma.post.findUnique({
+      where: { id: post.id },
+      include: {
+        author: { select: { id: true, username: true, profilePicture: true } },
+        likes: true,
+        comments: true,
+        savedBy: true,
+        hashtags: { include: { hashtag: true } },
+        poll: {
+          include: {
+            options: { include: { votes: true } }
+          }
+        }
+      }
+    });
+    
+    return res.json({ success: true, post: fullPost });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ success: false, message: 'Server error.' });

@@ -7,12 +7,30 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family:sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 html, body, #root {
-  background: #0f172a;
+  background: linear-gradient(180deg, #050a14 0%, #0a1020 50%, #0f172a 100%);
   min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Global Aurora Background Effect */
+#root::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(ellipse at 20% 0%, rgba(6, 182, 212, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(139, 92, 246, 0.06) 0%, transparent 40%),
+    radial-gradient(ellipse at 40% 80%, rgba(236, 72, 153, 0.05) 0%, transparent 40%);
+  pointer-events: none;
+  z-index: 0;
 }
 
 .container {
@@ -20,17 +38,18 @@ html, body, #root {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 20px;
-  background: #0f172a;
+  position: relative;
+  z-index: 1;
 }
 
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
   color-scheme: dark;
   color: rgba(255, 255, 255, 0.87);
-  background-color: #0f172a;
+  background-color: #050a14;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -40,11 +59,12 @@ html, body, #root {
 
 a {
   font-weight: 500;
-  color: #646cff;
+  color: #8b5cf6;
   text-decoration: inherit;
+  transition: color 0.2s ease;
 }
 a:hover {
-  color: #535bf2;
+  color: #a78bfa;
 }
 
 body {
@@ -53,26 +73,52 @@ body {
   min-height: 100vh;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
+/* Note: h1 styles are defined per-component to avoid conflicts */
 
 button {
-  border-radius: 8px;
-  border: 1px solid transparent;
+  border-radius: 10px;
+  border: 1px solid rgba(139, 92, 246, 0.2);
   padding: 0.6em 1.2em;
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: rgba(30, 41, 59, 0.8);
+  color: #e2e8f0;
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: all 0.2s ease;
 }
 button:hover {
-  border-color: #646cff;
+  border-color: rgba(139, 92, 246, 0.4);
+  background-color: rgba(139, 92, 246, 0.1);
 }
 button:focus,
 button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+}
+
+/* Fix for react-icons SVGs - ensure they inherit color and are visible */
+svg {
+  fill: currentColor;
+}
+button svg,
+span svg,
+div svg {
+  fill: currentColor !important;
+  display: inline-block !important;
+  vertical-align: middle;
+  overflow: visible !important;
+}
+/* Ensure SVG paths inherit fill */
+svg path,
+svg circle,
+svg rect,
+svg polygon {
+  fill: inherit;
+}
+
+/* Fix for icon-only circular buttons - override default button padding */
+button[style*="borderRadius"]:has(svg:only-child),
+button:has(svg:only-child) {
+  padding: 0;
 }

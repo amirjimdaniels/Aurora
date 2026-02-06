@@ -611,7 +611,8 @@ const Settings = () => {
     <div style={{
       minHeight: '100vh',
       background: darkMode ? '#0f172a' : '#f1f5f9',
-      padding: '5rem 1rem 2rem 1rem'
+      padding: '6rem 1rem 2rem 1rem',
+      overflow: 'visible'
     }}>
       <div style={{
         maxWidth: '900px',
@@ -670,7 +671,7 @@ const Settings = () => {
           </div>
 
           {/* Content */}
-          <div style={{ minHeight: '400px' }}>
+          <div style={{ minHeight: '500px', overflowY: 'auto' }}>
             {renderContent()}
           </div>
         </div>

@@ -143,6 +143,7 @@ router.get('/:id', async (req, res) => {
         birthday: true,
         location: true,
         createdAt: true,
+        isDeveloper: true,
         posts: {
           include: {
             author: { select: { username: true } },

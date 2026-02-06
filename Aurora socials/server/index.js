@@ -16,6 +16,13 @@ import friendsRouter from './routes/friends.js';
 import followRouter from './routes/follow.js';
 import messagesRouter from './routes/messages.js';
 import notificationsRouter from './routes/notifications.js';
+import newsRouter from './routes/news.js';
+import storiesRouter from './routes/stories.js';
+import pollsRouter from './routes/polls.js';
+import eventsRouter from './routes/events.js';
+import groupsRouter from './routes/groups.js';
+import scheduledPostsRouter from './routes/scheduledPosts.js';
+import reportsRouter from './routes/reports.js';
 
 
 const app = express();
@@ -45,6 +52,13 @@ app.use('/api/friends', friendsRouter);
 app.use('/api/follow', followRouter);
 app.use('/api/messages', messagesRouter);
 app.use('/api/notifications', notificationsRouter);
+app.use('/api/news', newsRouter);
+app.use('/api/stories', storiesRouter);
+app.use('/api/polls', pollsRouter);
+app.use('/api/events', eventsRouter);
+app.use('/api/groups', groupsRouter);
+app.use('/api/scheduled-posts', scheduledPostsRouter);
+app.use('/api/reports', reportsRouter);
 
 
 // Registration endpoint using Prisma
