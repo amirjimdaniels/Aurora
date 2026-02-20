@@ -1,19 +1,21 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
+import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
 const prisma = new PrismaClient();
 
 // Create a report (bug, feature, contact, or post report)
-router.post('/', async (req, res) => {
+router.post('/', authenticateToken, async (req, res) => {
   try {
-    const { 
-      userId, type, category, subject, title, description, 
-      message, email, steps, severity, useCase, postId 
+    const userId = req.user.userId; // Get userId from JWT token
+    const {
+      type, category, subject, title, description,
+      message, email, steps, severity, useCase, postId
     } = req.body;
 
-    if (!userId || !type) {
-      return res.status(400).json({ error: 'userId and type are required' });
+    if (!type) {
+      return res.status(400).json({ error: 'type is required' });
     }
 
     const report = await prisma.report.create({
@@ -113,13 +115,14 @@ router.delete('/:id', async (req, res) => {
 });
 
 // Report a post specifically
-router.post('/post/:postId', async (req, res) => {
+router.post('/post/:postId', authenticateToken, async (req, res) => {
   try {
     const { postId } = req.params;
-    const { userId, category, description } = req.body;
+    const userId = req.user.userId; // Get userId from JWT token
+    const { category, description } = req.body;
 
-    if (!userId || !category) {
-      return res.status(400).json({ error: 'userId and category are required' });
+    if (!category) {
+      return res.status(400).json({ error: 'category is required' });
     }
 
     // Check if user already reported this post

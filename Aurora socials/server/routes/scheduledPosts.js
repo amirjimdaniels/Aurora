@@ -2,16 +2,18 @@ import express from 'express';
 import pkg from '@prisma/client';
 const { PrismaClient } = pkg;
 const prisma = new PrismaClient();
+import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
 
 // Create a scheduled post
-router.post('/', async (req, res) => {
+router.post('/', authenticateToken, async (req, res) => {
   try {
-    const { userId, content, mediaUrl, scheduledAt } = req.body;
-    
-    if (!userId || !content || !scheduledAt) {
-      return res.status(400).json({ error: 'userId, content, and scheduledAt are required' });
+    const userId = req.user.userId; // Get userId from JWT token
+    const { content, mediaUrl, scheduledAt } = req.body;
+
+    if (!content || !scheduledAt) {
+      return res.status(400).json({ error: 'content and scheduledAt are required' });
     }
     
     const scheduledTime = new Date(scheduledAt);
@@ -62,10 +64,11 @@ router.get('/user/:userId', async (req, res) => {
 });
 
 // Update scheduled post
-router.put('/:postId', async (req, res) => {
+router.put('/:postId', authenticateToken, async (req, res) => {
   try {
     const { postId } = req.params;
-    const { userId, content, mediaUrl, scheduledAt } = req.body;
+    const userId = req.user.userId; // Get userId from JWT token
+    const { content, mediaUrl, scheduledAt } = req.body;
     
     const post = await prisma.scheduledPost.findUnique({
       where: { id: Number(postId) }
@@ -100,10 +103,10 @@ router.put('/:postId', async (req, res) => {
 });
 
 // Delete scheduled post
-router.delete('/:postId', async (req, res) => {
+router.delete('/:postId', authenticateToken, async (req, res) => {
   try {
     const { postId } = req.params;
-    const { userId } = req.body;
+    const userId = req.user.userId; // Get userId from JWT token
     
     const post = await prisma.scheduledPost.findUnique({
       where: { id: Number(postId) }
@@ -173,10 +176,10 @@ router.post('/publish', async (req, res) => {
 });
 
 // Publish now (immediately publish a scheduled post)
-router.post('/:postId/publish-now', async (req, res) => {
+router.post('/:postId/publish-now', authenticateToken, async (req, res) => {
   try {
     const { postId } = req.params;
-    const { userId } = req.body;
+    const userId = req.user.userId; // Get userId from JWT token
     
     const scheduledPost = await prisma.scheduledPost.findUnique({
       where: { id: Number(postId) }

@@ -1136,7 +1136,7 @@ const LandingPage = ({ searchQuery = '' }) => {
                       background: activeCategory === cat.key ? '#3b82f6' : '#334155',
                       color: activeCategory === cat.key ? '#fff' : '#94a3b8',
                       cursor: 'pointer', fontSize: '0.85rem', fontWeight: '500',
-                      whiteSpace: 'nowrap', transition: 'all 0.2s'
+                      whiteSpace: 'nowrap', transition: 'all 0.2s', flexShrink: 0
                     }}
                   >
                     {cat.label}

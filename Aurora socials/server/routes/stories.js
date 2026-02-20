@@ -2,16 +2,18 @@ import express from 'express';
 import pkg from '@prisma/client';
 const { PrismaClient } = pkg;
 const prisma = new PrismaClient();
+import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
 
 // Create a new story
-router.post('/', async (req, res) => {
+router.post('/', authenticateToken, async (req, res) => {
   try {
-    const { userId, mediaUrl, caption } = req.body;
-    
-    if (!userId || !mediaUrl) {
-      return res.status(400).json({ error: 'userId and mediaUrl are required' });
+    const userId = req.user.userId; // Get userId from JWT token
+    const { mediaUrl, caption } = req.body;
+
+    if (!mediaUrl) {
+      return res.status(400).json({ error: 'mediaUrl is required' });
     }
     
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from now
@@ -163,14 +165,10 @@ router.get('/feed/:userId', async (req, res) => {
 });
 
 // View a story (mark as seen)
-router.post('/:storyId/view', async (req, res) => {
+router.post('/:storyId/view', authenticateToken, async (req, res) => {
   try {
     const { storyId } = req.params;
-    const { userId } = req.body;
-    
-    if (!userId) {
-      return res.status(400).json({ error: 'userId is required' });
-    }
+    const userId = req.user.userId; // Get userId from JWT token
     
     // Check if already viewed
     const existing = await prisma.storyView.findUnique({
@@ -227,11 +225,11 @@ router.get('/:storyId/viewers', async (req, res) => {
 });
 
 // Delete a story
-router.delete('/:storyId', async (req, res) => {
+router.delete('/:storyId', authenticateToken, async (req, res) => {
   try {
     const { storyId } = req.params;
-    const { userId } = req.body;
-    
+    const userId = req.user.userId; // Get userId from JWT token
+
     // Verify ownership
     const story = await prisma.story.findUnique({
       where: { id: Number(storyId) }

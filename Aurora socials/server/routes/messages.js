@@ -1,5 +1,6 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
+import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -83,8 +84,9 @@ router.get('/followers/:userId', async (req, res) => {
 });
 
 // Send a message (only between friends/mutual followers)
-router.post('/send', async (req, res) => {
-  const { senderId, receiverId, content } = req.body;
+router.post('/send', authenticateToken, async (req, res) => {
+  const senderId = req.user.userId; // Get senderId from JWT token
+  const { receiverId, content } = req.body;
   
   try {
     // Check if they're mutual followers (friends)
@@ -231,8 +233,9 @@ const typingUsers = new Map();
 const TYPING_TIMEOUT = 3000; // 3 seconds
 
 // Set typing status
-router.post('/typing', (req, res) => {
-  const { senderId, receiverId } = req.body;
+router.post('/typing', authenticateToken, (req, res) => {
+  const senderId = req.user.userId; // Get senderId from JWT token
+  const { receiverId } = req.body;
   const key = `${senderId}-${receiverId}`;
   
   // Clear existing timeout for this typing session
@@ -254,8 +257,9 @@ router.post('/typing', (req, res) => {
 });
 
 // Stop typing (explicit clear)
-router.post('/stop-typing', (req, res) => {
-  const { senderId, receiverId } = req.body;
+router.post('/stop-typing', authenticateToken, (req, res) => {
+  const senderId = req.user.userId; // Get senderId from JWT token
+  const { receiverId } = req.body;
   const key = `${senderId}-${receiverId}`;
   
   if (typingUsers.has(key)) {

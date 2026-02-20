@@ -1,5 +1,6 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
+import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -13,9 +14,10 @@ async function getBotUser() {
 }
 
 // Follow a user
-router.post('/follow', async (req, res) => {
-  const { followerId, followingId } = req.body;
-  
+router.post('/follow', authenticateToken, async (req, res) => {
+  const followerId = req.user.userId; // Get followerId from JWT token
+  const { followingId } = req.body;
+
   if (followerId === followingId) {
     return res.status(400).json({ error: "You can't follow yourself" });
   }
@@ -57,8 +59,9 @@ router.post('/follow', async (req, res) => {
 });
 
 // Unfollow a user
-router.delete('/unfollow', async (req, res) => {
-  const { followerId, followingId } = req.body;
+router.delete('/unfollow', authenticateToken, async (req, res) => {
+  const followerId = req.user.userId; // Get followerId from JWT token
+  const { followingId } = req.body;
   
   try {
     await prisma.follow.delete({

@@ -2,13 +2,15 @@ import express from 'express';
 import pkg from '@prisma/client';
 const { PrismaClient } = pkg;
 const prisma = new PrismaClient();
+import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
 
 // Create a group
-router.post('/', async (req, res) => {
+router.post('/', authenticateToken, async (req, res) => {
   try {
-    const { userId, name, description, coverImage, isPrivate } = req.body;
+    const userId = req.user.userId; // Get userId from JWT token
+    const {name, description, coverImage, isPrivate } = req.body;
     
     if (!userId || !name) {
       return res.status(400).json({ error: 'userId and name are required' });
@@ -122,7 +124,7 @@ router.get('/:groupId', async (req, res) => {
 });
 
 // Join group
-router.post('/:groupId/join', async (req, res) => {
+router.post('/:groupId/join', authenticateToken, async (req, res) => {
   try {
     const { groupId } = req.params;
     const { userId } = req.body;
@@ -161,7 +163,7 @@ router.post('/:groupId/join', async (req, res) => {
 });
 
 // Leave group
-router.post('/:groupId/leave', async (req, res) => {
+router.post('/:groupId/leave', authenticateToken, async (req, res) => {
   try {
     const { groupId } = req.params;
     const { userId } = req.body;
@@ -194,10 +196,11 @@ router.post('/:groupId/leave', async (req, res) => {
 });
 
 // Post to group
-router.post('/:groupId/posts', async (req, res) => {
+router.post('/:groupId/posts', authenticateToken, async (req, res) => {
   try {
     const { groupId } = req.params;
-    const { userId, content, mediaUrl } = req.body;
+    const userId = req.user.userId; // Get userId from JWT token
+    const {content, mediaUrl } = req.body;
     
     if (!userId || !content) {
       return res.status(400).json({ error: 'userId and content are required' });
@@ -295,7 +298,7 @@ router.get('/user/:userId', async (req, res) => {
 });
 
 // Delete group
-router.delete('/:groupId', async (req, res) => {
+router.delete('/:groupId', authenticateToken, async (req, res) => {
   try {
     const { groupId } = req.params;
     const { userId } = req.body;

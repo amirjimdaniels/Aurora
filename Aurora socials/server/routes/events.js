@@ -2,16 +2,18 @@ import express from 'express';
 import pkg from '@prisma/client';
 const { PrismaClient } = pkg;
 const prisma = new PrismaClient();
+import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
 
 // Create an event
-router.post('/', async (req, res) => {
+router.post('/', authenticateToken, async (req, res) => {
   try {
-    const { userId, title, description, location, startTime, endTime, coverImage } = req.body;
-    
-    if (!userId || !title || !startTime) {
-      return res.status(400).json({ error: 'userId, title, and startTime are required' });
+    const userId = req.user.userId; // Get userId from JWT token
+    const { title, description, location, startTime, endTime, coverImage } = req.body;
+
+    if (!title || !startTime) {
+      return res.status(400).json({ error: 'title and startTime are required' });
     }
     
     const event = await prisma.event.create({
@@ -116,13 +118,14 @@ router.get('/:eventId', async (req, res) => {
 });
 
 // RSVP to event
-router.post('/:eventId/rsvp', async (req, res) => {
+router.post('/:eventId/rsvp', authenticateToken, async (req, res) => {
   try {
     const { eventId } = req.params;
-    const { userId, status } = req.body; // status: 'going', 'interested', 'not_going'
-    
-    if (!userId || !status) {
-      return res.status(400).json({ error: 'userId and status are required' });
+    const userId = req.user.userId; // Get userId from JWT token
+    const { status } = req.body; // status: 'going', 'interested', 'not_going'
+
+    if (!status) {
+      return res.status(400).json({ error: 'status is required' });
     }
     
     if (!['going', 'interested', 'not_going'].includes(status)) {
@@ -153,14 +156,10 @@ router.post('/:eventId/rsvp', async (req, res) => {
 });
 
 // Remove RSVP
-router.delete('/:eventId/rsvp', async (req, res) => {
+router.delete('/:eventId/rsvp', authenticateToken, async (req, res) => {
   try {
     const { eventId } = req.params;
-    const { userId } = req.body;
-    
-    if (!userId) {
-      return res.status(400).json({ error: 'userId is required' });
-    }
+    const userId = req.user.userId; // Get userId from JWT token
     
     await prisma.eventRSVP.deleteMany({
       where: {
@@ -177,11 +176,11 @@ router.delete('/:eventId/rsvp', async (req, res) => {
 });
 
 // Delete event
-router.delete('/:eventId', async (req, res) => {
+router.delete('/:eventId', authenticateToken, async (req, res) => {
   try {
     const { eventId } = req.params;
-    const { userId } = req.body;
-    
+    const userId = req.user.userId; // Get userId from JWT token
+
     const event = await prisma.event.findUnique({
       where: { id: Number(eventId) }
     });

@@ -3,15 +3,17 @@ import pkg from '@prisma/client';
 const { PrismaClient } = pkg;
 const prisma = new PrismaClient();
 import { createNotification } from './notifications.js';
+import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
 
 // Add a comment to a post (supports replies via parentId)
-router.post('/:id/comment', async (req, res) => {
+router.post('/:id/comment', authenticateToken, async (req, res) => {
   const postId = parseInt(req.params.id, 10);
-  const { userId, content, parentId } = req.body;
-  if (!userId || !content) {
-    return res.status(400).json({ success: false, message: 'User ID and content required.' });
+  const userId = req.user.userId; // Get userId from JWT token
+  const { content, parentId } = req.body;
+  if (!content) {
+    return res.status(400).json({ success: false, message: 'Content required.' });
   }
   try {
     const comment = await prisma.comment.create({
@@ -73,12 +75,9 @@ router.post('/:id/comment', async (req, res) => {
 });
 
 // Like/unlike a comment
-router.post('/:commentId/like', async (req, res) => {
+router.post('/:commentId/like', authenticateToken, async (req, res) => {
   const commentId = parseInt(req.params.commentId, 10);
-  const { userId } = req.body;
-  if (!userId) {
-    return res.status(400).json({ success: false, message: 'User ID required.' });
-  }
+  const userId = req.user.userId; // Get userId from JWT token
   try {
     const existing = await prisma.commentLike.findUnique({
       where: { userId_commentId: { userId, commentId } }
@@ -119,12 +118,9 @@ router.post('/:commentId/like', async (req, res) => {
 });
 
 // Delete a comment (only by author) - also deletes all replies
-router.delete('/:commentId', async (req, res) => {
+router.delete('/:commentId', authenticateToken, async (req, res) => {
   const commentId = parseInt(req.params.commentId, 10);
-  const { userId } = req.body;
-  if (!userId) {
-    return res.status(400).json({ success: false, message: 'User ID required.' });
-  }
+  const userId = req.user.userId; // Get userId from JWT token
   try {
     const comment = await prisma.comment.findUnique({ where: { id: commentId } });
     if (!comment) {

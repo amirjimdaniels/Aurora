@@ -2,8 +2,14 @@ import jwt from 'jsonwebtoken';
 
 // Middleware to verify JWT token
 export const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+  // Check for token in cookies first (HttpOnly - more secure)
+  let token = req.cookies?.authToken;
+
+  // Fall back to Authorization header for backwards compatibility
+  if (!token) {
+    const authHeader = req.headers['authorization'];
+    token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+  }
 
   if (!token) {
     return res.status(401).json({ success: false, message: 'Access token required' });
@@ -20,8 +26,13 @@ export const authenticateToken = (req, res, next) => {
 
 // Optional auth - doesn't fail if no token, but attaches user if present
 export const optionalAuth = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+  // Check cookies first, then Authorization header
+  let token = req.cookies?.authToken;
+
+  if (!token) {
+    const authHeader = req.headers['authorization'];
+    token = authHeader && authHeader.split(' ')[1];
+  }
 
   if (token) {
     try {
@@ -34,11 +45,38 @@ export const optionalAuth = (req, res, next) => {
   next();
 };
 
-// Generate JWT token
-export const generateToken = (user) => {
+// Generate access token (short-lived)
+export const generateAccessToken = (user) => {
   return jwt.sign(
-    { userId: user.id, username: user.username },
+    { userId: user.id, username: user.username, type: 'access' },
     process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+    { expiresIn: '15m' } // 15 minutes
   );
+};
+
+// Generate refresh token (long-lived)
+export const generateRefreshToken = (user) => {
+  return jwt.sign(
+    { userId: user.id, username: user.username, type: 'refresh' },
+    process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET,
+    { expiresIn: '7d' } // 7 days
+  );
+};
+
+// Legacy function - kept for backwards compatibility
+export const generateToken = (user) => {
+  return generateAccessToken(user);
+};
+
+// Verify refresh token
+export const verifyRefreshToken = (token) => {
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET);
+    if (decoded.type !== 'refresh') {
+      throw new Error('Invalid token type');
+    }
+    return decoded;
+  } catch (err) {
+    throw new Error('Invalid refresh token');
+  }
 };

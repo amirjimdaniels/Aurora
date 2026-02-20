@@ -5,10 +5,11 @@ const api = axios.create({
     headers: {
         'Content-Type': 'application/json'
     },
-    withCredentials: true
+    withCredentials: true // Send cookies (including HttpOnly authToken) with requests
 });
 
 // Request interceptor - automatically add JWT token to all requests
+// Note: Server prioritizes HttpOnly cookie, but we keep localStorage for backwards compatibility
 api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('token');

@@ -2,14 +2,16 @@ import express from 'express';
 import pkg from '@prisma/client';
 const { PrismaClient } = pkg;
 const prisma = new PrismaClient();
+import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
 
 // Send friend request
-router.post('/request', async (req, res) => {
-  const { senderId, receiverId } = req.body;
-  if (!senderId || !receiverId) {
-    return res.status(400).json({ success: false, message: 'Sender and receiver IDs required.' });
+router.post('/request', authenticateToken, async (req, res) => {
+  const senderId = req.user.userId; // Get senderId from JWT token
+  const { receiverId } = req.body;
+  if (!receiverId) {
+    return res.status(400).json({ success: false, message: 'Receiver ID required.' });
   }
   if (senderId === receiverId) {
     return res.status(400).json({ success: false, message: 'Cannot send friend request to yourself.' });
@@ -43,8 +45,9 @@ router.post('/request', async (req, res) => {
 });
 
 // Accept friend request
-router.post('/accept', async (req, res) => {
-  const { friendshipId, userId } = req.body;
+router.post('/accept', authenticateToken, async (req, res) => {
+  const userId = req.user.userId; // Get userId from JWT token
+  const { friendshipId } = req.body;
   try {
     const friendship = await prisma.friendship.findUnique({ where: { id: friendshipId } });
     if (!friendship) {
@@ -90,9 +93,9 @@ router.post('/accept', async (req, res) => {
 });
 
 // Reject/cancel friend request or unfriend
-router.delete('/:friendshipId', async (req, res) => {
+router.delete('/:friendshipId', authenticateToken, async (req, res) => {
   const friendshipId = parseInt(req.params.friendshipId, 10);
-  const { userId } = req.body;
+  const userId = req.user.userId; // Get userId from JWT token
   try {
     const friendship = await prisma.friendship.findUnique({ where: { id: friendshipId } });
     if (!friendship) {

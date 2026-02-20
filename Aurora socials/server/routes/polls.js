@@ -2,6 +2,7 @@ import express from 'express';
 import pkg from '@prisma/client';
 const { PrismaClient } = pkg;
 const prisma = new PrismaClient();
+import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -84,13 +85,14 @@ router.get('/post/:postId', async (req, res) => {
 });
 
 // Vote on a poll option
-router.post('/:pollId/vote', async (req, res) => {
+router.post('/:pollId/vote', authenticateToken, async (req, res) => {
   try {
     const { pollId } = req.params;
-    const { userId, optionId } = req.body;
-    
-    if (!userId || !optionId) {
-      return res.status(400).json({ error: 'userId and optionId are required' });
+    const userId = req.user.userId; // Get userId from JWT token
+    const { optionId } = req.body;
+
+    if (!optionId) {
+      return res.status(400).json({ error: 'optionId is required' });
     }
     
     // Check if poll is expired
@@ -167,14 +169,10 @@ router.post('/:pollId/vote', async (req, res) => {
 });
 
 // Remove vote from poll
-router.delete('/:pollId/vote', async (req, res) => {
+router.delete('/:pollId/vote', authenticateToken, async (req, res) => {
   try {
     const { pollId } = req.params;
-    const { userId } = req.body;
-    
-    if (!userId) {
-      return res.status(400).json({ error: 'userId is required' });
-    }
+    const userId = req.user.userId; // Get userId from JWT token
     
     const existingVote = await prisma.pollVote.findFirst({
       where: {

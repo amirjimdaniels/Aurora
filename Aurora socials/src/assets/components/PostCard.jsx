@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "../../api/axios.js";
-import { 
-  FaRegThumbsUp, FaThumbsUp, FaRegCommentDots, FaBookmark, 
+import {
+  FaRegThumbsUp, FaThumbsUp, FaRegCommentDots, FaBookmark,
   FaShare, FaTrash, FaTimes, FaLink, FaCheck, FaReply, FaSmile,
   FaHashtag, FaFlag, FaExclamationTriangle
 } from "react-icons/fa";
 import { IoSend } from "react-icons/io5";
+import { sanitizeText } from "../../utils/sanitize.js";
 
 /**
  * Reusable PostCard component
@@ -106,8 +107,10 @@ const PostCard = ({ post, currentUserId, currentUserProfile, currentUsername, on
   // Render content with hashtags removed (they're shown separately)
   const renderContentWithHashtags = (content) => {
     if (!content) return null;
+    // Sanitize content to prevent XSS attacks
+    const sanitized = sanitizeText(content);
     // Remove hashtags from the content - they'll be displayed separately
-    return content.replace(/#\w+/g, '').replace(/\s+/g, ' ').trim();
+    return sanitized.replace(/#\w+/g, '').replace(/\s+/g, ' ').trim();
   };
 
   // Get reaction summary for display
@@ -274,7 +277,7 @@ const PostCard = ({ post, currentUserId, currentUserProfile, currentUsername, on
             >
               {comment.author?.username}
             </div>
-            <div style={{ color: '#e4e6eb', fontSize: '0.9rem' }}>{comment.content}</div>
+            <div style={{ color: '#e4e6eb', fontSize: '0.9rem' }}>{sanitizeText(comment.content)}</div>
           </div>
           <div style={{ display: 'flex', gap: '1rem', marginTop: '0.25rem', marginLeft: '0.5rem', fontSize: '0.75rem' }}>
             <span 

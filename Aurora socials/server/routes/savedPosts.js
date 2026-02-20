@@ -2,14 +2,16 @@ import express from 'express';
 import pkg from '@prisma/client';
 const { PrismaClient } = pkg;
 const prisma = new PrismaClient();
+import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
 
 // Get all saved posts for a user
-router.get('/user/:userId', async (req, res) => {
+router.get('/user/:userId', authenticateToken, async (req, res) => {
   const userId = parseInt(req.params.userId, 10);
-  if (!userId) {
-    return res.status(400).json({ success: false, message: 'User ID required.' });
+  // Verify user can only access their own saved posts
+  if (userId !== req.user.userId) {
+    return res.status(403).json({ success: false, message: 'Not authorized to view these saved posts.' });
   }
   try {
     const savedPosts = await prisma.savedPost.findMany({
@@ -35,12 +37,9 @@ router.get('/user/:userId', async (req, res) => {
 });
 
 // Toggle save/unsave post
-router.post('/:id/save', async (req, res) => {
+router.post('/:id/save', authenticateToken, async (req, res) => {
   const postId = parseInt(req.params.id, 10);
-  const { userId } = req.body;
-  if (!userId) {
-    return res.status(400).json({ success: false, message: 'User ID required.' });
-  }
+  const userId = req.user.userId; // Get userId from JWT token
   try {
     const existingSaved = await prisma.savedPost.findFirst({ where: { postId, userId } });
     if (existingSaved) {

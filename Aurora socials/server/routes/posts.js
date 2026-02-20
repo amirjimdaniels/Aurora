@@ -3,6 +3,7 @@ import pkg from '@prisma/client';
 const { PrismaClient } = pkg;
 const prisma = new PrismaClient();
 import { createNotification } from './notifications.js';
+import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -245,10 +246,11 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create a new post
-router.post('/', async (req, res) => {
-  const { userId, content, mediaUrl, pollOptions, pollQuestion } = req.body;
-  if (!userId || !content) {
-    return res.status(400).json({ success: false, message: 'User ID and content required.' });
+router.post('/', authenticateToken, async (req, res) => {
+  const { content, mediaUrl, pollOptions, pollQuestion } = req.body;
+  const userId = req.user.userId; // Get userId from JWT token, not request body
+  if (!content) {
+    return res.status(400).json({ success: false, message: 'Content required.' });
   }
   try {
     const post = await prisma.post.create({
@@ -303,12 +305,9 @@ router.post('/', async (req, res) => {
 });
 
 // Like/unlike a post (toggle)
-router.post('/:id/like', async (req, res) => {
+router.post('/:id/like', authenticateToken, async (req, res) => {
   const postId = parseInt(req.params.id, 10);
-  const { userId } = req.body;
-  if (!userId) {
-    return res.status(400).json({ success: false, message: 'User ID required.' });
-  }
+  const userId = req.user.userId; // Get userId from JWT token
   try {
     const existingLike = await prisma.like.findFirst({ where: { postId, userId } });
     if (existingLike) {
@@ -325,12 +324,9 @@ router.post('/:id/like', async (req, res) => {
 });
 
 // Delete a post (only by author)
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticateToken, async (req, res) => {
   const postId = parseInt(req.params.id, 10);
-  const { userId } = req.body;
-  if (!userId) {
-    return res.status(400).json({ success: false, message: 'User ID required.' });
-  }
+  const userId = req.user.userId; // Get userId from JWT token
   try {
     const post = await prisma.post.findUnique({ where: { id: postId } });
     if (!post) {
@@ -353,11 +349,12 @@ router.delete('/:id', async (req, res) => {
 });
 
 // Add reaction to a post
-router.post('/:id/react', async (req, res) => {
+router.post('/:id/react', authenticateToken, async (req, res) => {
   const postId = parseInt(req.params.id, 10);
-  const { userId, emoji, label, category } = req.body;
-  if (!userId || !emoji || !label || !category) {
-    return res.status(400).json({ success: false, message: 'User ID, emoji, label, and category required.' });
+  const userId = req.user.userId; // Get userId from JWT token
+  const { emoji, label, category } = req.body;
+  if (!emoji || !label || !category) {
+    return res.status(400).json({ success: false, message: 'Emoji, label, and category required.' });
   }
   try {
     // Check if user already reacted with this emoji
@@ -405,12 +402,9 @@ router.post('/:id/react', async (req, res) => {
 });
 
 // Remove all reactions from a user on a post (clear all)
-router.delete('/:id/reactions', async (req, res) => {
+router.delete('/:id/reactions', authenticateToken, async (req, res) => {
   const postId = parseInt(req.params.id, 10);
-  const { userId } = req.body;
-  if (!userId) {
-    return res.status(400).json({ success: false, message: 'User ID required.' });
-  }
+  const userId = req.user.userId; // Get userId from JWT token
   try {
     await prisma.reaction.deleteMany({
       where: { userId, postId }
