@@ -1,0 +1,12 @@
+node_modules
+npm-debug.log
+.env
+uploads
+dev.db
+prisma/dev.db
+test-db.js
+check-users.js
+check-sqlite-users.js
+migrate-data*.js
+docker-compose.yml
+.git

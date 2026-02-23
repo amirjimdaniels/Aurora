@@ -1,3 +1,9 @@
+# Environment variables (contain secrets)
+.env
+server/.env
+!.env.example
+!server/.env.example
+
 # Logs
 logs
 *.log

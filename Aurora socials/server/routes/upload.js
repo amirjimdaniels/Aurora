@@ -1,6 +1,6 @@
 import express from 'express';
 import { authenticateToken } from '../middleware/auth.js';
-import { uploadSingle, uploadMultiple, handleUploadError } from '../middleware/upload.js';
+import { uploadSingle, uploadMultiple, handleUploadError, getFileUrl } from '../middleware/upload.js';
 
 const router = express.Router();
 
@@ -13,8 +13,8 @@ router.post('/single', authenticateToken, uploadSingle, handleUploadError, (req,
     });
   }
 
-  // Return the file URL
-  const fileUrl = `/uploads/${req.file.filename}`;
+  // Return the file URL (S3 URL in production, local path in dev)
+  const fileUrl = getFileUrl(req.file);
 
   return res.json({
     success: true,
@@ -39,8 +39,8 @@ router.post('/multiple', authenticateToken, uploadMultiple, handleUploadError, (
   }
 
   const files = req.files.map(file => ({
-    url: `/uploads/${file.filename}`,
-    filename: file.filename,
+    url: getFileUrl(file),
+    filename: file.filename || file.key,
     originalname: file.originalname,
     mimetype: file.mimetype,
     size: file.size

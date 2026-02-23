@@ -157,6 +157,7 @@ const Navbar = ({ searchQuery: externalSearchQuery, onSearchChange }) => {
         <li><a href="#profile" onClick={(e) => { e.preventDefault(); navigate('/profile'); }}>Profile</a></li>
         <li><a href="#support" onClick={(e) => { e.preventDefault(); navigate('/support'); }}>Support</a></li>
         {devMode && <li><a href="#icon-test" onClick={(e) => { e.preventDefault(); navigate('/icon-test'); }} style={{ color: '#ff6b6b' }}>Icon Test</a></li>}
+        {devMode && <li><a href="#generate-users" onClick={(e) => { e.preventDefault(); navigate('/generate-users'); }} style={{ color: '#ff6b6b' }}>User Gen</a></li>}
         <li>
           <button
             className="nav-button"

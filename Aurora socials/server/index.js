@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import bodyParser from 'body-parser';
 import bcrypt from 'bcrypt';
 import rateLimit from 'express-rate-limit';
@@ -28,10 +29,12 @@ import groupsRouter from './routes/groups.js';
 import scheduledPostsRouter from './routes/scheduledPosts.js';
 import reportsRouter from './routes/reports.js';
 import uploadRouter from './routes/upload.js';
+import adminRouter from './routes/admin.js';
+import analyticsRouter from './routes/analytics.js';
 
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 const SALT_ROUNDS = 10;
 
 // Rate limiting configuration
@@ -60,10 +63,16 @@ const passwordResetLimiter = rateLimit({
 });
 
 
-// No more in-memory user store; using Prisma/PostgreSQL
+// Security headers
+app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+
+// CORS configuration
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',')
+  : ['http://localhost:5173', 'http://localhost:5174'];
 
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:5174'],
+  origin: allowedOrigins,
   credentials: true
 }));
 
@@ -94,6 +103,8 @@ app.use('/api/events', eventsRouter);
 app.use('/api/groups', groupsRouter);
 app.use('/api/scheduled-posts', scheduledPostsRouter);
 app.use('/api/reports', reportsRouter);
+app.use('/api/admin', adminRouter);
+app.use('/api/analytics', analyticsRouter);
 
 
 // Registration endpoint using Prisma

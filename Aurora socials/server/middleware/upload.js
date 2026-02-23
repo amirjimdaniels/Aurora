@@ -6,31 +6,8 @@ import fs from 'fs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Create uploads directory if it doesn't exist
-const uploadsDir = path.join(__dirname, '../uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
-// Configure storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadsDir);
-  },
-  filename: (req, file, cb) => {
-    // Generate unique filename: timestamp-randomstring-originalname
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname);
-    const nameWithoutExt = path.basename(file.originalname, ext);
-    // Sanitize filename to prevent directory traversal
-    const sanitizedName = nameWithoutExt.replace(/[^a-zA-Z0-9_-]/g, '_');
-    cb(null, `${sanitizedName}-${uniqueSuffix}${ext}`);
-  }
-});
-
 // File filter - only allow images and videos
 const fileFilter = (req, file, cb) => {
-  // Allowed mime types
   const allowedImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
   const allowedVideoTypes = ['video/mp4', 'video/webm', 'video/quicktime'];
   const allowedTypes = [...allowedImageTypes, ...allowedVideoTypes];
@@ -42,13 +19,63 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
+let storage;
+
+// Use S3 in production, local disk in development
+if (process.env.AWS_S3_BUCKET) {
+  const { S3Client } = await import('@aws-sdk/client-s3');
+  const multerS3 = (await import('multer-s3')).default;
+
+  const s3 = new S3Client({
+    region: process.env.AWS_REGION || 'us-east-1',
+    // Uses IAM role credentials automatically on AWS (EC2/ECS/EB)
+    // Falls back to env vars for local testing with S3
+    credentials: process.env.AWS_ACCESS_KEY_ID ? {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    } : undefined,
+  });
+
+  storage = multerS3({
+    s3: s3,
+    bucket: process.env.AWS_S3_BUCKET,
+    contentType: multerS3.AUTO_CONTENT_TYPE,
+    key: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      const ext = path.extname(file.originalname);
+      const nameWithoutExt = path.basename(file.originalname, ext);
+      const sanitizedName = nameWithoutExt.replace(/[^a-zA-Z0-9_-]/g, '_');
+      cb(null, `uploads/${sanitizedName}-${uniqueSuffix}${ext}`);
+    }
+  });
+} else {
+  // Local disk storage for development
+  const uploadsDir = path.join(__dirname, '../uploads');
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+
+  storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, uploadsDir);
+    },
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      const ext = path.extname(file.originalname);
+      const nameWithoutExt = path.basename(file.originalname, ext);
+      const sanitizedName = nameWithoutExt.replace(/[^a-zA-Z0-9_-]/g, '_');
+      cb(null, `${sanitizedName}-${uniqueSuffix}${ext}`);
+    }
+  });
+}
+
 // Configure multer
 export const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB max file size (much better than 50MB JSON!)
-    files: 5 // Max 5 files per request
+    fileSize: 10 * 1024 * 1024, // 10MB max file size
+    files: 5
   }
 });
 
@@ -57,6 +84,16 @@ export const uploadSingle = upload.single('media');
 
 // Multiple files upload
 export const uploadMultiple = upload.array('media', 5);
+
+// Helper to get the URL for an uploaded file
+export const getFileUrl = (file) => {
+  if (file.location) {
+    // S3 upload - multer-s3 sets .location to the full S3 URL
+    return file.location;
+  }
+  // Local upload
+  return `/uploads/${file.filename}`;
+};
 
 // Error handler for multer errors
 export const handleUploadError = (err, req, res, next) => {

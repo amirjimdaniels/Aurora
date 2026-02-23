@@ -1,0 +1,5 @@
+apache-airflow==2.10.4
+psycopg2-binary==2.9.10
+pandas==2.2.3
+pyarrow==18.1.0
+openai==1.82.0

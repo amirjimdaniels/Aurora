@@ -17,7 +17,8 @@
       "Bash(docker-compose up:*)",
       "Bash(timeout:*)",
       "Bash(npm rebuild:*)",
-      "Bash(npm uninstall:*)"
+      "Bash(npm uninstall:*)",
+      "Bash(npx prisma db push:*)"
     ]
   }
 }

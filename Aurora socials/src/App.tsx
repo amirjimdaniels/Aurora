@@ -13,6 +13,7 @@ import Friends from "./assets/components/Friends.jsx";
 import Settings from "./assets/components/Settings.jsx";
 import Support from "./assets/components/Support.jsx";
 import IconTest from "./assets/components/IconTest.jsx";
+import UserGenerator from "./assets/components/UserGenerator.jsx";
 
 
 
@@ -106,6 +107,12 @@ const App = () => {
           <>
             <Navbar />
             <IconTest />
+          </>
+        } />
+        <Route path="/generate-users" element={
+          <>
+            <Navbar />
+            <UserGenerator />
           </>
         } />
         {/* Add more routes as needed */}
