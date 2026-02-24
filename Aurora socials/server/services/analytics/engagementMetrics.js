@@ -38,7 +38,7 @@ export async function getEngagementTimeSeries(days = 30) {
 
     const [posts, likes, comments, reactions, newUsers] = await Promise.all([
       prisma.post.count({ where: { createdAt: range } }),
-      prisma.like.count({ where: { createdAt: range } }),
+      prisma.like.count({ where: { post: { createdAt: range } } }),
       prisma.comment.count({ where: { createdAt: range } }),
       prisma.reaction.count({ where: { createdAt: range } }),
       prisma.user.count({ where: { createdAt: range } }),

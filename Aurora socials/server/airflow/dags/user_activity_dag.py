@@ -48,7 +48,7 @@ def compute_user_activity(**context):
                 SELECT DISTINCT uid FROM (
                     SELECT "authorId" as uid FROM "Post" WHERE "createdAt" >= %s AND "createdAt" < %s
                     UNION
-                    SELECT "userId" as uid FROM "Like" WHERE "createdAt" >= %s AND "createdAt" < %s
+                    SELECT l."userId" as uid FROM "Like" l JOIN "Post" p ON p.id = l."postId" WHERE p."createdAt" >= %s AND p."createdAt" < %s
                     UNION
                     SELECT "authorId" as uid FROM "Comment" WHERE "createdAt" >= %s AND "createdAt" < %s
                     UNION
@@ -70,7 +70,7 @@ def compute_user_activity(**context):
                 posts = cur.fetchone()[0]
 
                 cur.execute(
-                    'SELECT COUNT(*) FROM "Like" WHERE "userId" = %s AND "createdAt" >= %s AND "createdAt" < %s',
+                    'SELECT COUNT(*) FROM "Like" l JOIN "Post" p ON p.id = l."postId" WHERE l."userId" = %s AND p."createdAt" >= %s AND p."createdAt" < %s',
                     (user_id, day_start, day_end),
                 )
                 likes = cur.fetchone()[0]

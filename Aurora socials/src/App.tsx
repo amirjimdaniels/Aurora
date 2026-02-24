@@ -14,6 +14,7 @@ import Settings from "./assets/components/Settings.jsx";
 import Support from "./assets/components/Support.jsx";
 import IconTest from "./assets/components/IconTest.jsx";
 import UserGenerator from "./assets/components/UserGenerator.jsx";
+import AdminDashboard from "./assets/components/AdminDashboard.jsx";
 
 
 
@@ -113,6 +114,12 @@ const App = () => {
           <>
             <Navbar />
             <UserGenerator />
+          </>
+        } />
+        <Route path="/analytics" element={
+          <>
+            <Navbar />
+            <AdminDashboard />
           </>
         } />
         {/* Add more routes as needed */}

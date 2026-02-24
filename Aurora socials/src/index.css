@@ -98,22 +98,23 @@ button:focus-visible {
 }
 
 /* Fix for react-icons SVGs - ensure they inherit color and are visible */
-svg {
+/* Exclude recharts SVGs (.recharts-surface) from these overrides */
+svg:not(.recharts-surface) {
   fill: currentColor;
 }
-button svg,
-span svg,
-div svg {
+button svg:not(.recharts-surface),
+span svg:not(.recharts-surface),
+div svg:not(.recharts-surface) {
   fill: currentColor !important;
   display: inline-block !important;
   vertical-align: middle;
   overflow: visible !important;
 }
-/* Ensure SVG paths inherit fill */
-svg path,
-svg circle,
-svg rect,
-svg polygon {
+/* Ensure SVG paths inherit fill - exclude recharts */
+svg:not(.recharts-surface) path,
+svg:not(.recharts-surface) circle,
+svg:not(.recharts-surface) rect,
+svg:not(.recharts-surface) polygon {
   fill: inherit;
 }
 

@@ -47,9 +47,9 @@ def aggregate_daily_engagement(**context):
     )
     total_posts = posts[0]["cnt"]
 
-    # Count likes
+    # Count likes (Like has no createdAt, join via Post)
     likes = execute_query(
-        'SELECT COUNT(*) as cnt FROM "Like" WHERE "createdAt" >= %s AND "createdAt" < %s',
+        'SELECT COUNT(*) as cnt FROM "Like" l JOIN "Post" p ON p.id = l."postId" WHERE p."createdAt" >= %s AND p."createdAt" < %s',
         (day_start, day_end),
     )
     total_likes = likes[0]["cnt"]
