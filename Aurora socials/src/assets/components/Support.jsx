@@ -275,7 +275,7 @@ const Support = () => {
                 <FaEnvelope className="section-icon" />
                 <div>
                   <h2>Contact Our Team</h2>
-                  <p>We typically respond within 24-48 hours</p>
+                  <p>We typically respond within 24-48 hours. You can also email us directly at <a href="mailto:amirbendaniels@gmail.com" style={{ color: '#6366f1' }}>amirbendaniels@gmail.com</a></p>
                 </div>
               </div>
 

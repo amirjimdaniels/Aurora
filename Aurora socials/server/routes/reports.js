@@ -1,9 +1,60 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
 import { authenticateToken } from '../middleware/auth.js';
+import nodemailer from 'nodemailer';
 
 const router = express.Router();
 const prisma = new PrismaClient();
+
+const ADMIN_EMAIL = 'amirbendaniels@gmail.com';
+
+// Email transporter (configured via env vars, falls back to logging)
+let transporter = null;
+if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+  transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: parseInt(process.env.SMTP_PORT || '587'),
+    secure: process.env.SMTP_SECURE === 'true',
+    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+  });
+}
+
+async function notifyAdmin(report, user) {
+  const subject = `[Aurora] New ${report.type} report: ${report.title || report.subject || 'No title'}`;
+  const text = `
+New report submitted on Aurora Social
+
+Type: ${report.type}
+${report.category ? `Category: ${report.category}` : ''}
+${report.title ? `Title: ${report.title}` : ''}
+${report.subject ? `Subject: ${report.subject}` : ''}
+${report.severity ? `Severity: ${report.severity}` : ''}
+Submitted by: User #${report.userId}${user ? ` (${user.username})` : ''}
+${report.email ? `Contact email: ${report.email}` : ''}
+
+${report.description || report.message || 'No description provided.'}
+${report.steps ? `\nSteps to reproduce:\n${report.steps}` : ''}
+
+---
+View all reports in the admin dashboard.
+  `.trim();
+
+  if (transporter) {
+    try {
+      await transporter.sendMail({
+        from: process.env.SMTP_FROM || process.env.SMTP_USER,
+        to: ADMIN_EMAIL,
+        subject,
+        text,
+      });
+      console.log(`[Reports] Email sent to ${ADMIN_EMAIL}`);
+    } catch (err) {
+      console.error('[Reports] Failed to send email:', err.message);
+    }
+  } else {
+    console.log(`[Reports] Email notification (no SMTP configured):\nTo: ${ADMIN_EMAIL}\nSubject: ${subject}`);
+  }
+}
 
 // Create a report (bug, feature, contact, or post report)
 router.post('/', authenticateToken, async (req, res) => {
@@ -34,6 +85,10 @@ router.post('/', authenticateToken, async (req, res) => {
         postId
       }
     });
+
+    // Notify admin via email
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { username: true } });
+    notifyAdmin(report, user);
 
     res.status(201).json(report);
   } catch (error) {
@@ -148,6 +203,9 @@ router.post('/post/:postId', authenticateToken, async (req, res) => {
         title: `Post Report: ${category}`
       }
     });
+
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { username: true } });
+    notifyAdmin(report, user);
 
     res.status(201).json(report);
   } catch (error) {
