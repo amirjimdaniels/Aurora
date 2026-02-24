@@ -72,14 +72,14 @@ const PostCard = ({ post, currentUserId, currentUserProfile, currentUsername, on
 
   // Reactions data
   const reactions = [
-    { emoji: "😊", label: "happy" },
-    { emoji: "😍", label: "loved" },
-    { emoji: "🔥", label: "fire" },
-    { emoji: "👏", label: "clapping" },
-    { emoji: "😢", label: "sad" },
-    { emoji: "😡", label: "angry" },
-    { emoji: "🎉", label: "celebrate" },
-    { emoji: "💯", label: "100" }
+    { emoji: "😊", label: "happy", category: "emotion" },
+    { emoji: "😍", label: "loved", category: "emotion" },
+    { emoji: "🔥", label: "fire", category: "expression" },
+    { emoji: "👏", label: "clapping", category: "gesture" },
+    { emoji: "😢", label: "sad", category: "emotion" },
+    { emoji: "😡", label: "angry", category: "emotion" },
+    { emoji: "🎉", label: "celebrate", category: "expression" },
+    { emoji: "💯", label: "100", category: "expression" }
   ];
 
   // Extract feeling from content (e.g., "— feeling 😍 loved")
@@ -160,10 +160,10 @@ const PostCard = ({ post, currentUserId, currentUserProfile, currentUsername, on
   };
 
   // React handler
-  const handleReact = async (emoji, label) => {
+  const handleReact = async (emoji, label, category) => {
     if (!currentUserId) return;
     try {
-      await axios.post(`/api/posts/${localPost.id}/react`, { userId: currentUserId, emoji, label });
+      await axios.post(`/api/posts/${localPost.id}/react`, { userId: currentUserId, emoji, label, category });
       setShowReactionPicker(false);
       refreshPost();
     } catch (err) {}
@@ -601,7 +601,7 @@ const PostCard = ({ post, currentUserId, currentUserProfile, currentUsername, on
                   {reactions.map((r, idx) => (
                     <button
                       key={idx}
-                      onClick={() => handleReact(r.emoji, r.label)}
+                      onClick={() => handleReact(r.emoji, r.label, r.category)}
                       style={{
                         background: 'none',
                         border: 'none',

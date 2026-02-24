@@ -14,8 +14,11 @@ const MessagesPanel = ({ isOpen, onClose, initialChat }) => {
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [isPartnerTyping, setIsPartnerTyping] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
+
+  const chatEmojis = ['😊', '😂', '❤️', '🔥', '👍', '👎', '😢', '😡', '🎉', '💯', '🙏', '😍', '🤔', '👋', '✨', '💀'];
 
   const userId = Number(localStorage.getItem('userId'));
 
@@ -403,11 +406,38 @@ const MessagesPanel = ({ isOpen, onClose, initialChat }) => {
               <div ref={messagesEndRef} />
             </div>
 
+            {/* Emoji Picker */}
+            {showEmojiPicker && (
+              <div style={{
+                padding: '0.5rem', borderTop: '1px solid #3a3b3c',
+                background: '#2d2d2d', display: 'flex', flexWrap: 'wrap', gap: '2px', justifyContent: 'center'
+              }}>
+                {chatEmojis.map((emoji, i) => (
+                  <button key={i} onClick={() => { setNewMessage(prev => prev + emoji); setShowEmojiPicker(false); }}
+                    style={{ background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', padding: '4px', borderRadius: '6px' }}
+                    onMouseOver={e => e.target.style.background = '#3a3b3c'}
+                    onMouseOut={e => e.target.style.background = 'none'}
+                  >{emoji}</button>
+                ))}
+              </div>
+            )}
+
             {/* Message Input */}
             <form onSubmit={handleSendMessage} style={{
               padding: '1rem', borderTop: '1px solid #3a3b3c',
-              display: 'flex', gap: '0.5rem'
+              display: 'flex', gap: '0.5rem', alignItems: 'center'
             }}>
+              <button
+                type="button"
+                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                style={{
+                  width: '36px', height: '36px', borderRadius: '50%',
+                  background: showEmojiPicker ? '#2078f4' : 'none',
+                  border: 'none', cursor: 'pointer', fontSize: '1.2rem',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexShrink: 0
+                }}
+              >😊</button>
               <input
                 type="text"
                 value={newMessage}
