@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "../../api/axios.js";
+import axios from "../../api/axios.tsx";
 import { 
   FaQuestionCircle, FaEnvelope, FaFlag, FaBug, FaLightbulb, 
   FaBook, FaShieldAlt, FaChevronDown, FaChevronUp, FaCheck,

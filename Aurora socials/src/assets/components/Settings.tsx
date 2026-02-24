@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from '../../api/axios.js';
+import axios from '../../api/axios.tsx';
 import { 
   FaMoon, FaSun, FaBell, FaLock, FaGlobe, FaUserShield, 
   FaEye, FaEyeSlash, FaVolumeUp, FaVolumeMute, FaArrowLeft,

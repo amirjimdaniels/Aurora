@@ -1,8 +1,8 @@
-import axios from "../../api/axios.js";
+import axios from "../../api/axios.tsx";
 import "./LandingPage.css";
 import { useEffect, useState } from "react";
 import { FaBookmark } from "react-icons/fa";
-import PostCard from "./PostCard.jsx";
+import PostCard from "./PostCard.tsx";
 
 const SavedPosts = () => {
   const [savedPosts, setSavedPosts] = useState([]);

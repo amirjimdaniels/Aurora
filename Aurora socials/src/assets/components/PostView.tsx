@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "../../api/axios.js";
+import axios from "../../api/axios.tsx";
 import { FaRegThumbsUp, FaThumbsUp, FaRegCommentDots, FaBookmark, FaRegBookmark, FaShare, FaTrash, FaTimes, FaArrowLeft } from "react-icons/fa";
 import { IoSend } from "react-icons/io5";
 
@@ -98,7 +98,7 @@ const PostView = () => {
   const formatTimeAgo = (dateString) => {
     const now = new Date();
     const date = new Date(dateString);
-    const diffMs = now - date;
+    const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
@@ -375,8 +375,9 @@ const PostView = () => {
                     lineHeight: '1.4', boxSizing: 'border-box'
                   }}
                   onInput={(e) => {
-                    e.target.style.height = 'auto';
-                    e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+                    const el = e.target as HTMLTextAreaElement;
+                    el.style.height = 'auto';
+                    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
                   }}
                 />
                 <button

@@ -1,21 +1,21 @@
 import { useState } from 'react';
-import Navbar from "./assets/components/Navbar.jsx";
+import Navbar from "./assets/components/Navbar.tsx";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
-import WelcomePage from "./assets/components/WelcomePage.jsx";
-import Register from "./assets/components/Register.jsx";
-import SignIn from "./assets/components/SignIn.jsx";
-import ForgotPassword from "./assets/components/ForgotPassword.jsx";
-import LandingPage from "./assets/components/LandingPage.jsx";
-import SavedPosts from "./assets/components/SavedPosts.jsx";
-import Profile from "./assets/components/Profile.jsx";
-import PostView from "./assets/components/PostView.jsx";
-import Friends from "./assets/components/Friends.jsx";
-import Settings from "./assets/components/Settings.jsx";
-import Support from "./assets/components/Support.jsx";
-import IconTest from "./assets/components/IconTest.jsx";
-import UserGenerator from "./assets/components/UserGenerator.jsx";
-import AdminDashboard from "./assets/components/AdminDashboard.jsx";
+import WelcomePage from "./assets/components/WelcomePage.tsx";
+import Register from "./assets/components/Register.tsx";
+import SignIn from "./assets/components/SignIn.tsx";
+import ForgotPassword from "./assets/components/ForgotPassword.tsx";
+import LandingPage from "./assets/components/LandingPage.tsx";
+import SavedPosts from "./assets/components/SavedPosts.tsx";
+import Profile from "./assets/components/Profile.tsx";
+import PostView from "./assets/components/PostView.tsx";
+import Friends from "./assets/components/Friends.tsx";
+import Settings from "./assets/components/Settings.tsx";
+import Support from "./assets/components/Support.tsx";
+import IconTest from "./assets/components/IconTest.tsx";
+import UserGenerator from "./assets/components/UserGenerator.tsx";
+import AdminDashboard from "./assets/components/AdminDashboard.tsx";
 
 
 

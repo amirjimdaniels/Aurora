@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import axios from '../../api/axios.js'
+import axios from '../../api/axios.tsx'
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
@@ -7,7 +7,7 @@ import {
 
 const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#22c55e', '#06b6d4', '#ef4444', '#64748b']
 
-const Card = ({ title, children, span = 1, accent }) => (
+const Card = ({ title = '', children, span = 1, accent }: any) => (
   <div style={{
     background: '#1e293b',
     borderRadius: '12px',
@@ -26,7 +26,7 @@ const Card = ({ title, children, span = 1, accent }) => (
   </div>
 )
 
-const StatBox = ({ label, value, color = '#e2e8f0', sub }) => (
+const StatBox = ({ label, value, color = '#e2e8f0', sub = '' }: any) => (
   <div style={{ textAlign: 'center', padding: '0.5rem 0' }}>
     <div style={{ width: '40px', height: '4px', borderRadius: '2px', background: color, margin: '0 auto 0.5rem', opacity: 0.8 }} />
     <div style={{ fontSize: '1.75rem', fontWeight: '700', color }}>{value}</div>
@@ -105,7 +105,7 @@ const AdminDashboard = () => {
     { name: 'Polls', value: distribution.breakdown.polls.count },
   ].filter(d => d.value > 0) : []
 
-  const renderPieLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, name, percent, fill }) => {
+  const renderPieLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, name, percent, fill }: any) => {
     const RADIAN = Math.PI / 180
     const radius = outerRadius + 25
     const x = cx + radius * Math.cos(-midAngle * RADIAN)

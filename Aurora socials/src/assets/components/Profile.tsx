@@ -1,10 +1,10 @@
-import axios from "../../api/axios.js";
+import axios from "../../api/axios.tsx";
 import "./Profile.css";
 import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { FaCamera, FaEdit, FaMapMarkerAlt, FaBirthdayCake, FaCalendarAlt, FaTimes, FaCommentDots } from "react-icons/fa";
 import { RiUserFollowLine, RiUserUnfollowLine } from "react-icons/ri";
-import PostCard from "./PostCard.jsx";
+import PostCard from "./PostCard.tsx";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -32,14 +32,14 @@ const Profile = () => {
   const [followModal, setFollowModal] = useState(null); // 'followers' or 'following' or null
   const [followersList, setFollowersList] = useState([]);
   const [followingList, setFollowingList] = useState([]);
-  const [loadingFollowList, setLoadingFollowList] = useState([]);
+  const [loadingFollowList, setLoadingFollowList] = useState(false);
 
   // Handle file selection for profile picture
   const handleProfilePicSelect = (e) => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => setEditProfilePic(reader.result);
+      reader.onloadend = () => setEditProfilePic(reader.result as string);
       reader.readAsDataURL(file);
     }
   };
@@ -49,7 +49,7 @@ const Profile = () => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => setEditCoverPhoto(reader.result);
+      reader.onloadend = () => setEditCoverPhoto(reader.result as string);
       reader.readAsDataURL(file);
     }
   };

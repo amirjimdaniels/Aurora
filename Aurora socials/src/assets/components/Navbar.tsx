@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FaSignOutAlt, FaCog, FaMoon, FaSun, FaSearch, FaBell, FaTimes, FaCode, FaEnvelope } from 'react-icons/fa'
-import axios from '../../api/axios.js'
+import axios from '../../api/axios.tsx'
 import './Navbar.css'
-import NotificationsPanel from './NotificationsPanel.jsx'
-import MessagesPanel from './MessagesPanel.jsx'
+import NotificationsPanel from './NotificationsPanel.tsx'
+import MessagesPanel from './MessagesPanel.tsx'
 
-const Navbar = ({ searchQuery: externalSearchQuery, onSearchChange }) => {
+const Navbar = ({ searchQuery: externalSearchQuery = undefined, onSearchChange = undefined }: any) => {
   const navigate = useNavigate()
   const [open, setOpen] = useState(false) // mobile menu
   const [searchOpen, setSearchOpen] = useState(false)
@@ -160,6 +160,7 @@ const Navbar = ({ searchQuery: externalSearchQuery, onSearchChange }) => {
   }
 
   return (
+  <>
     <nav className='navbar' role="navigation" aria-label="Main navigation">
       <div className="left" style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0}}>
         {!imgError ? (
@@ -412,19 +413,6 @@ const Navbar = ({ searchQuery: externalSearchQuery, onSearchChange }) => {
         )}
       </button>
 
-      {/* Notifications Panel */}
-      <NotificationsPanel
-        isOpen={notificationsOpen}
-        onClose={() => setNotificationsOpen(false)}
-      />
-
-      {/* Messages Panel */}
-      <MessagesPanel
-        isOpen={messagesOpen}
-        onClose={() => { setMessagesOpen(false); setMessageInitialChat(null); }}
-        initialChat={messageInitialChat}
-      />
-
       {/* Profile Dropdown */}
       <div style={{ position: 'relative' }}>
         <button
@@ -506,6 +494,18 @@ const Navbar = ({ searchQuery: externalSearchQuery, onSearchChange }) => {
         )}
       </div>
     </nav>
+
+    {/* Panels rendered outside <nav> to avoid backdrop-filter containing block */}
+    <NotificationsPanel
+      isOpen={notificationsOpen}
+      onClose={() => setNotificationsOpen(false)}
+    />
+    <MessagesPanel
+      isOpen={messagesOpen}
+      onClose={() => { setMessagesOpen(false); setMessageInitialChat(null); }}
+      initialChat={messageInitialChat}
+    />
+  </>
   )
 }
 

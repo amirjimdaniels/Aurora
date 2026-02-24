@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import axios from "../../api/axios.js";
+import axios from "../../api/axios.tsx";
 import { FaPlus, FaTimes, FaChevronLeft, FaChevronRight, FaEye, FaImage, FaTrash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
@@ -177,7 +177,7 @@ const Stories = ({ showCreateModal, onCloseCreateModal, hideAddButton }) => {
   };
 
   const getTimeAgo = (dateString) => {
-    const seconds = Math.floor((Date.now() - new Date(dateString)) / 1000);
+    const seconds = Math.floor((Date.now() - new Date(dateString).getTime()) / 1000);
     if (seconds < 60) return 'just now';
     if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
     return `${Math.floor(seconds / 3600)}h`;

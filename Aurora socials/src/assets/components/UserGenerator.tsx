@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import axios from '../../api/axios.js'
+import axios from '../../api/axios.tsx'
 
 const UserGenerator = () => {
   const [count, setCount] = useState(5)

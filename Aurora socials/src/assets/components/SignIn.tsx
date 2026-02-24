@@ -1,13 +1,13 @@
 import { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Register.css";
-import axios from "../../api/axios.js";
+import axios from "../../api/axios.tsx";
 
 const LOGIN_URL = '/api/login';
 
 const SignIn = () => {
-    const userRef = useRef();
-    const errRef = useRef();
+    const userRef = useRef<HTMLInputElement>(null);
+    const errRef = useRef<HTMLParagraphElement>(null);
     const navigate = useNavigate();
 
     const [user, setUser] = useState('');

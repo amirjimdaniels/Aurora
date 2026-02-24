@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "../../api/axios.js";
+import axios from "../../api/axios.tsx";
 import { FaTimes, FaChevronLeft, FaUserFriends, FaUsers } from "react-icons/fa";
 import { IoChatbubbleEllipses, IoSend } from "react-icons/io5";
 
@@ -415,8 +415,8 @@ const MessagesPanel = ({ isOpen, onClose, initialChat }) => {
                 {chatEmojis.map((emoji, i) => (
                   <button key={i} onClick={() => { setNewMessage(prev => prev + emoji); setShowEmojiPicker(false); }}
                     style={{ background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', padding: '4px', borderRadius: '6px' }}
-                    onMouseOver={e => e.target.style.background = '#3a3b3c'}
-                    onMouseOut={e => e.target.style.background = 'none'}
+                    onMouseOver={e => (e.target as HTMLElement).style.background = '#3a3b3c'}
+                    onMouseOut={e => (e.target as HTMLElement).style.background = 'none'}
                   >{emoji}</button>
                 ))}
               </div>

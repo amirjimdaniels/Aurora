@@ -1,14 +1,14 @@
 // ...existing code...
-import axios from "../../api/axios.js";
+import axios from "../../api/axios.tsx";
 import "./LandingPage.css";
 import { useEffect, useState, useRef, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { FaRegThumbsUp, FaThumbsUp, FaRegCommentDots, FaBookmark, FaImage, FaTimes, FaTrash, FaShare, FaLink, FaCheck, FaSmile, FaNewspaper, FaFire, FaUserFriends, FaHashtag, FaCog, FaRegBookmark, FaHome, FaUser, FaBell, FaPoll, FaClock, FaPlus } from "react-icons/fa";
 import { IoCloseCircle, IoSend, IoChatbubbleEllipses } from "react-icons/io5";
-import MessagesPanel from "./MessagesPanel.jsx";
-import FriendsPanel from "./FriendsPanel.jsx";
-import PostCard from "./PostCard.jsx";
-import Stories from "./Stories.jsx";
+import MessagesPanel from "./MessagesPanel.tsx";
+import FriendsPanel from "./FriendsPanel.tsx";
+import PostCard from "./PostCard.tsx";
+import Stories from "./Stories.tsx";
 
 const LandingPage = ({ searchQuery = '' }) => {
   const navigate = useNavigate();
@@ -282,7 +282,7 @@ const LandingPage = ({ searchQuery = '' }) => {
       return acc;
     }, {});
     
-    return Object.values(reactionCounts)
+    return (Object.values(reactionCounts) as any[])
       .sort((a, b) => b.count - a.count)
       .slice(0, 3); // Show top 3 reactions
   };
@@ -1496,7 +1496,7 @@ const LandingPage = ({ searchQuery = '' }) => {
         <div style={{ padding: '0.5rem 1rem', color: '#64748b', fontSize: '0.7rem' }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.5rem' }}>
             {['About', 'Help', 'Privacy', 'Terms', 'Careers'].map((link, idx) => (
-              <span key={idx} style={{ cursor: 'pointer' }} onMouseEnter={e => e.target.style.color = '#94a3b8'} onMouseLeave={e => e.target.style.color = '#64748b'}>
+              <span key={idx} style={{ cursor: 'pointer' }} onMouseEnter={e => (e.target as HTMLElement).style.color = '#94a3b8'} onMouseLeave={e => (e.target as HTMLElement).style.color = '#64748b'}>
                 {link} {idx < 4 && '·'}
               </span>
             ))}
@@ -1513,7 +1513,7 @@ const LandingPage = ({ searchQuery = '' }) => {
         const formatTimeAgo = (dateString) => {
           const now = new Date();
           const date = new Date(dateString);
-          const diffMs = now - date;
+          const diffMs = now.getTime() - date.getTime();
           const diffMins = Math.floor(diffMs / 60000);
           const diffHours = Math.floor(diffMs / 3600000);
           const diffDays = Math.floor(diffMs / 86400000);
@@ -1811,8 +1811,9 @@ const LandingPage = ({ searchQuery = '' }) => {
                         lineHeight: '1.4', boxSizing: 'border-box'
                       }}
                       onInput={(e) => {
-                        e.target.style.height = 'auto';
-                        e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+                        const el = e.target as HTMLTextAreaElement;
+                        el.style.height = 'auto';
+                        el.style.height = Math.min(el.scrollHeight, 120) + 'px';
                       }}
                     />
                     {/* Send button */}

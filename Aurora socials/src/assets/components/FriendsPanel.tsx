@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "../../api/axios.js";
+import axios from "../../api/axios.tsx";
 import { FaUserFriends, FaUserPlus, FaCheck, FaTimes, FaUserMinus, FaChevronLeft, FaCommentDots } from "react-icons/fa";
 
 const FriendsPanel = ({ isOpen, onClose, onOpenChat }) => {

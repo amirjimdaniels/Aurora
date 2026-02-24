@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import axios from "../../api/axios.js";
+import axios from "../../api/axios.tsx";
 import { FaBell, FaTimes, FaHeart, FaComment, FaReply, FaSmile, FaUserPlus, FaEnvelope } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
@@ -100,7 +100,7 @@ const NotificationsPanel = ({ isOpen, onClose }) => {
   const formatTimeAgo = (dateString) => {
     const now = new Date();
     const date = new Date(dateString);
-    const diffMs = now - date;
+    const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);

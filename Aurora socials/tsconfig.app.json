@@ -17,10 +17,10 @@
     "jsx": "react-jsx",
     "allowJs": true,
 
-    /* Linting */
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    /* Linting - relaxed for JS→TS migration, tighten gradually */
+    "strict": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true

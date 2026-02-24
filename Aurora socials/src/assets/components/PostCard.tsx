@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "../../api/axios.js";
+import axios from "../../api/axios.tsx";
 import {
   FaRegThumbsUp, FaThumbsUp, FaRegCommentDots, FaBookmark,
   FaShare, FaTrash, FaTimes, FaLink, FaCheck, FaReply, FaSmile,
   FaHashtag, FaFlag, FaExclamationTriangle
 } from "react-icons/fa";
 import { IoSend } from "react-icons/io5";
-import { sanitizeText } from "../../utils/sanitize.js";
+import { sanitizeText } from "../../utils/sanitize.ts";
 
 /**
  * Reusable PostCard component
@@ -28,7 +28,7 @@ const isVideo = (url) => {
   return /\.(mp4|webm|mov|quicktime)(\?.*)?$/i.test(url);
 };
 
-const PostCard = ({ post, currentUserId, currentUserProfile, currentUsername, onPostUpdate, showDeleteButton = true, compact = false, onHashtagClick }) => {
+const PostCard = ({ post, currentUserId, currentUserProfile = null, currentUsername = '', onPostUpdate, showDeleteButton = true, compact = false, onHashtagClick = null }: any) => {
   const navigate = useNavigate();
   const [showPostModal, setShowPostModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
@@ -103,11 +103,11 @@ const PostCard = ({ post, currentUserId, currentUserProfile, currentUsername, on
   };
 
   // Extract hashtags from content
-  const extractHashtags = (content) => {
+  const extractHashtags = (content): string[] => {
     if (!content) return [];
     const hashtagRegex = /#(\w+)/g;
     const matches = content.match(hashtagRegex);
-    return matches ? [...new Set(matches)] : [];
+    return matches ? ([...new Set(matches)] as string[]) : [];
   };
 
   // Render content with hashtags removed (they're shown separately)
@@ -131,7 +131,7 @@ const PostCard = ({ post, currentUserId, currentUserProfile, currentUsername, on
       acc[key].users.push(reaction.user?.username || 'User');
       return acc;
     }, {});
-    return Object.values(reactionCounts).sort((a, b) => b.count - a.count).slice(0, 4);
+    return (Object.values(reactionCounts) as any[]).sort((a, b) => b.count - a.count).slice(0, 4);
   };
 
   // Refresh this specific post
@@ -363,8 +363,8 @@ const PostCard = ({ post, currentUserId, currentUserProfile, currentUsername, on
               <span
                 onClick={() => navigate(`/profile/${author.id}`)}
                 style={{ color: '#e2e8f0', fontWeight: '600', fontSize: '0.95rem', cursor: 'pointer' }}
-                onMouseEnter={e => e.target.style.textDecoration = 'underline'}
-                onMouseLeave={e => e.target.style.textDecoration = 'none'}
+                onMouseEnter={e => (e.target as HTMLElement).style.textDecoration = 'underline'}
+                onMouseLeave={e => (e.target as HTMLElement).style.textDecoration = 'none'}
               >
                 {author.username || "Unknown"}
               </span>
@@ -434,8 +434,8 @@ const PostCard = ({ post, currentUserId, currentUserProfile, currentUsername, on
                   cursor: 'pointer',
                   transition: 'all 0.15s'
                 }}
-                onMouseEnter={e => e.target.style.background = 'rgba(56, 189, 248, 0.2)'}
-                onMouseLeave={e => e.target.style.background = 'rgba(56, 189, 248, 0.1)'}
+                onMouseEnter={e => (e.target as HTMLElement).style.background = 'rgba(56, 189, 248, 0.2)'}
+                onMouseLeave={e => (e.target as HTMLElement).style.background = 'rgba(56, 189, 248, 0.1)'}
               >
                 {tag}
               </span>
@@ -508,7 +508,7 @@ const PostCard = ({ post, currentUserId, currentUserProfile, currentUsername, on
         {/* Media - Clickable to open modal */}
         {localPost.mediaUrl && localPost.mediaUrl.trim() !== "" && (
           <div
-            onClick={(e) => { if (e.target.tagName !== 'VIDEO') setShowPostModal(true); }}
+            onClick={(e) => { if ((e.target as HTMLElement).tagName !== 'VIDEO') setShowPostModal(true); }}
             style={{ marginBottom: '0.75rem', marginLeft: '-1rem', marginRight: '-1rem', cursor: 'pointer' }}
           >
             {isVideo(localPost.mediaUrl) ? (
@@ -525,8 +525,8 @@ const PostCard = ({ post, currentUserId, currentUserProfile, currentUsername, on
           <span 
             style={{ marginLeft: 'auto', cursor: 'pointer' }}
             onClick={() => setShowPostModal(true)}
-            onMouseEnter={e => e.target.style.textDecoration = 'underline'}
-            onMouseLeave={e => e.target.style.textDecoration = 'none'}
+            onMouseEnter={e => (e.target as HTMLElement).style.textDecoration = 'underline'}
+            onMouseLeave={e => (e.target as HTMLElement).style.textDecoration = 'none'}
           >
             {localPost.comments?.length || 0} comments
           </span>
@@ -620,8 +620,8 @@ const PostCard = ({ post, currentUserId, currentUserProfile, currentUsername, on
                         padding: '0.25rem',
                         transition: 'transform 0.15s'
                       }}
-                      onMouseEnter={e => e.target.style.transform = 'scale(1.3)'}
-                      onMouseLeave={e => e.target.style.transform = 'scale(1)'}
+                      onMouseEnter={e => (e.target as HTMLElement).style.transform = 'scale(1.3)'}
+                      onMouseLeave={e => (e.target as HTMLElement).style.transform = 'scale(1)'}
                       title={r.label}
                     >
                       {r.emoji}

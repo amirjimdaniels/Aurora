@@ -3,15 +3,15 @@ import { Link } from "react-router-dom";
 import { faCheck, faTimes, faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "./Register.css";
-import axios from "../../api/axios.js";
+import axios from "../../api/axios.tsx";
 
 const USER_REGEX = /^[A-z][A-z0-9-_]{3,23}$/;
 const PWD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%]).{8,24}$/;
 const REGISTER_URL = '/api/register';
 
 const Register = () => {
-    const userRef = useRef();
-    const errRef = useRef();
+    const userRef = useRef<HTMLInputElement>(null);
+    const errRef = useRef<HTMLParagraphElement>(null);
 
     const [user, setUser] = useState('');
     const [validName, setValidName] = useState(false);
@@ -68,7 +68,7 @@ const Register = () => {
             { headers: { 'Content-Type': 'application/json' },
             withCredentials: true });
             console.log(response.data);
-            console.log(response.accessToken);
+            console.log((response as any).accessToken);
             console.log(JSON.stringify(response))
             setSuccess(true);
             
