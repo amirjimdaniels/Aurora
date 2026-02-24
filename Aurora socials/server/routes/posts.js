@@ -315,6 +315,20 @@ router.post('/:id/like', authenticateToken, async (req, res) => {
       return res.json({ success: true, liked: false });
     } else {
       await prisma.like.create({ data: { postId, userId } });
+
+      // Notify post author
+      const post = await prisma.post.findUnique({ where: { id: postId }, select: { authorId: true } });
+      if (post && post.authorId !== userId) {
+        const user = await prisma.user.findUnique({ where: { id: userId }, select: { username: true } });
+        await createNotification({
+          userId: post.authorId,
+          fromUserId: userId,
+          type: 'like',
+          message: `${user?.username || 'Someone'} liked your post`,
+          postId
+        });
+      }
+
       return res.json({ success: true, liked: true });
     }
   } catch (err) {

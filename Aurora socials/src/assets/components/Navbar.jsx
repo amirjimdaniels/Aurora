@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FaSignOutAlt, FaCog, FaMoon, FaSun, FaSearch, FaBell, FaTimes, FaCode } from 'react-icons/fa'
+import { FaSignOutAlt, FaCog, FaMoon, FaSun, FaSearch, FaBell, FaTimes, FaCode, FaEnvelope } from 'react-icons/fa'
 import axios from '../../api/axios.js'
 import './Navbar.css'
 import NotificationsPanel from './NotificationsPanel.jsx'
+import MessagesPanel from './MessagesPanel.jsx'
 
 const Navbar = ({ searchQuery: externalSearchQuery, onSearchChange }) => {
   const navigate = useNavigate()
@@ -20,6 +21,9 @@ const Navbar = ({ searchQuery: externalSearchQuery, onSearchChange }) => {
   const [profilePicture, setProfilePicture] = useState(null)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
+  const [unreadMessageCount, setUnreadMessageCount] = useState(0)
+  const [messagesOpen, setMessagesOpen] = useState(false)
+  const [messageInitialChat, setMessageInitialChat] = useState(null)
   const [isDeveloper, setIsDeveloper] = useState(false)
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
@@ -80,6 +84,34 @@ const Navbar = ({ searchQuery: externalSearchQuery, onSearchChange }) => {
     const interval = setInterval(fetchUnreadCount, 30000)
     return () => clearInterval(interval)
   }, [userId])
+
+  // Fetch unread message count
+  useEffect(() => {
+    const fetchUnreadMessages = async () => {
+      if (userId) {
+        try {
+          const response = await axios.get(`/api/messages/unread/${userId}`)
+          setUnreadMessageCount(response.data.count)
+        } catch (err) {
+          console.error('Failed to fetch unread message count')
+        }
+      }
+    }
+    fetchUnreadMessages()
+    const interval = setInterval(fetchUnreadMessages, 15000)
+    return () => clearInterval(interval)
+  }, [userId])
+
+  // Listen for openMessages event from NotificationsPanel
+  useEffect(() => {
+    const handleOpenMessages = (e) => {
+      setMessageInitialChat(e.detail?.chat || null)
+      setMessagesOpen(true)
+      setNotificationsOpen(false)
+    }
+    window.addEventListener('openMessages', handleOpenMessages)
+    return () => window.removeEventListener('openMessages', handleOpenMessages)
+  }, [])
 
   // Search posts as user types
   useEffect(() => {
@@ -301,10 +333,50 @@ const Navbar = ({ searchQuery: externalSearchQuery, onSearchChange }) => {
         )}
       </div>
 
+      {/* Messages Envelope */}
+      <button
+        onClick={() => {
+          setMessagesOpen(!messagesOpen);
+          setNotificationsOpen(false);
+          setShowProfileMenu(false);
+        }}
+        style={{
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          padding: '0.5rem',
+          position: 'relative',
+          marginRight: '0.25rem'
+        }}
+      >
+        <FaEnvelope style={{ color: messagesOpen ? '#38bdf8' : '#e2e8f0', fontSize: '1.2rem' }} />
+        {unreadMessageCount > 0 && (
+          <span style={{
+            position: 'absolute',
+            top: '2px',
+            right: '0px',
+            background: '#22c55e',
+            color: '#fff',
+            fontSize: '0.65rem',
+            fontWeight: '600',
+            minWidth: '16px',
+            height: '16px',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '0 4px'
+          }}>
+            {unreadMessageCount > 9 ? '9+' : unreadMessageCount}
+          </span>
+        )}
+      </button>
+
       {/* Notifications Bell */}
       <button
         onClick={() => {
           setNotificationsOpen(!notificationsOpen);
+          setMessagesOpen(false);
           setShowProfileMenu(false);
           if (!notificationsOpen) setUnreadCount(0);
         }}
@@ -346,10 +418,17 @@ const Navbar = ({ searchQuery: externalSearchQuery, onSearchChange }) => {
         onClose={() => setNotificationsOpen(false)}
       />
 
+      {/* Messages Panel */}
+      <MessagesPanel
+        isOpen={messagesOpen}
+        onClose={() => { setMessagesOpen(false); setMessageInitialChat(null); }}
+        initialChat={messageInitialChat}
+      />
+
       {/* Profile Dropdown */}
       <div style={{ position: 'relative' }}>
         <button
-          onClick={() => { setShowProfileMenu(!showProfileMenu); setNotificationsOpen(false); }}
+          onClick={() => { setShowProfileMenu(!showProfileMenu); setNotificationsOpen(false); setMessagesOpen(false); }}
           style={{
             width: '40px', height: '40px', borderRadius: '50%',
             background: profilePicture ? 'none' : 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',

@@ -4,6 +4,12 @@ import axios from "../../api/axios.js";
 import { FaRegThumbsUp, FaThumbsUp, FaRegCommentDots, FaBookmark, FaRegBookmark, FaShare, FaTrash, FaTimes, FaArrowLeft } from "react-icons/fa";
 import { IoSend } from "react-icons/io5";
 
+const isVideo = (url) => {
+  if (!url) return false;
+  if (url.startsWith('data:video/')) return true;
+  return /\.(mp4|webm|mov|quicktime)(\?.*)?$/i.test(url);
+};
+
 const PostView = () => {
   const { postId } = useParams();
   const navigate = useNavigate();
@@ -280,7 +286,11 @@ const PostView = () => {
           {/* Media */}
           {post.mediaUrl && (
             <div style={{ width: '100%' }}>
-              <img src={post.mediaUrl} alt="" style={{ width: '100%', maxHeight: '500px', objectFit: 'cover' }} />
+              {isVideo(post.mediaUrl) ? (
+                <video src={post.mediaUrl} controls preload="metadata" style={{ width: '100%', maxHeight: '500px' }} />
+              ) : (
+                <img src={post.mediaUrl} alt="" style={{ width: '100%', maxHeight: '500px', objectFit: 'cover' }} />
+              )}
             </div>
           )}
 

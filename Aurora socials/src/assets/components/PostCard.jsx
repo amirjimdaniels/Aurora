@@ -22,6 +22,12 @@ import { sanitizeText } from "../../utils/sanitize.js";
  * - compact: If true, shows a smaller version for profile grids
  * - onHashtagClick: Callback when a hashtag is clicked
  */
+const isVideo = (url) => {
+  if (!url) return false;
+  if (url.startsWith('data:video/')) return true;
+  return /\.(mp4|webm|mov|quicktime)(\?.*)?$/i.test(url);
+};
+
 const PostCard = ({ post, currentUserId, currentUserProfile, currentUsername, onPostUpdate, showDeleteButton = true, compact = false, onHashtagClick }) => {
   const navigate = useNavigate();
   const [showPostModal, setShowPostModal] = useState(false);
@@ -501,11 +507,15 @@ const PostCard = ({ post, currentUserId, currentUserProfile, currentUsername, on
 
         {/* Media - Clickable to open modal */}
         {localPost.mediaUrl && localPost.mediaUrl.trim() !== "" && (
-          <div 
-            onClick={() => setShowPostModal(true)}
+          <div
+            onClick={(e) => { if (e.target.tagName !== 'VIDEO') setShowPostModal(true); }}
             style={{ marginBottom: '0.75rem', marginLeft: '-1rem', marginRight: '-1rem', cursor: 'pointer' }}
           >
-            <img src={localPost.mediaUrl} alt="Post media" style={{ width: '100%', maxHeight: '500px', objectFit: 'cover' }} />
+            {isVideo(localPost.mediaUrl) ? (
+              <video src={localPost.mediaUrl} controls preload="metadata" style={{ width: '100%', maxHeight: '500px' }} />
+            ) : (
+              <img src={localPost.mediaUrl} alt="Post media" style={{ width: '100%', maxHeight: '500px', objectFit: 'cover' }} />
+            )}
           </div>
         )}
 
@@ -761,7 +771,11 @@ const PostCard = ({ post, currentUserId, currentUserProfile, currentUsername, on
               )}
               {localPost.mediaUrl && localPost.mediaUrl.trim() !== "" && (
                 <div style={{ borderRadius: '8px', overflow: 'hidden', marginBottom: '0.5rem' }}>
-                  <img src={localPost.mediaUrl} alt="" style={{ width: '100%', maxHeight: '400px', objectFit: 'contain' }} />
+                  {isVideo(localPost.mediaUrl) ? (
+                    <video src={localPost.mediaUrl} controls preload="metadata" style={{ width: '100%', maxHeight: '400px' }} />
+                  ) : (
+                    <img src={localPost.mediaUrl} alt="" style={{ width: '100%', maxHeight: '400px', objectFit: 'contain' }} />
+                  )}
                 </div>
               )}
               <div style={{ display: 'flex', gap: '1rem', color: '#b0b3b8', fontSize: '0.9rem' }}>

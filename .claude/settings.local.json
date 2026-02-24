@@ -18,7 +18,11 @@
       "Bash(timeout:*)",
       "Bash(npm rebuild:*)",
       "Bash(npm uninstall:*)",
-      "Bash(npx prisma db push:*)"
+      "Bash(npx prisma db push:*)",
+      "Bash(git status:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ]
   }
 }

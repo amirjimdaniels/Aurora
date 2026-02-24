@@ -8,6 +8,9 @@ const prisma = new PrismaClient();
 
 const ADMIN_EMAIL = 'amirbendaniels@gmail.com';
 
+// TODO (nice-to-have): Wire up Gmail SMTP for real email delivery.
+// Steps: 1) Enable 2FA on Gmail, 2) Generate an App Password,
+// 3) Set env vars: SMTP_HOST=smtp.gmail.com SMTP_PORT=587 SMTP_USER=amirbendaniels@gmail.com SMTP_PASS=<app-password>
 // Email transporter (configured via env vars, falls back to logging)
 let transporter = null;
 if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {

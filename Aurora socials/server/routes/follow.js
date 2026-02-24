@@ -1,6 +1,7 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
 import { authenticateToken } from '../middleware/auth.js';
+import { createNotification } from './notifications.js';
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -34,7 +35,16 @@ router.post('/follow', authenticateToken, async (req, res) => {
     const follow = await prisma.follow.create({
       data: { followerId, followingId }
     });
-    
+
+    // Notify the user being followed
+    const followerUser = await prisma.user.findUnique({ where: { id: followerId }, select: { username: true } });
+    await createNotification({
+      userId: followingId,
+      fromUserId: followerId,
+      type: 'follow',
+      message: `${followerUser?.username || 'Someone'} started following you`
+    });
+
     // Bot auto-follow back feature
     const botUser = await getBotUser();
     if (botUser && followingId === botUser.id) {

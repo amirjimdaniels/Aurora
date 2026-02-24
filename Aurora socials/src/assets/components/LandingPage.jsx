@@ -22,6 +22,8 @@ const LandingPage = ({ searchQuery = '' }) => {
   const [newPostContent, setNewPostContent] = useState("");
   const [newPostMediaUrl, setNewPostMediaUrl] = useState("");
   const [mediaPreview, setMediaPreview] = useState(null);
+  const [mediaIsVideo, setMediaIsVideo] = useState(false);
+  const [mediaUploading, setMediaUploading] = useState(false);
   const fileInputRef = useRef(null);
   const [deletePostConfirm, setDeletePostConfirm] = useState(null); // postId to confirm delete
   const [deleteCommentConfirm, setDeleteCommentConfirm] = useState(null); // commentId to confirm delete
@@ -311,28 +313,44 @@ const LandingPage = ({ searchQuery = '' }) => {
     );
   };
 
-  // Handle file selection
-  const handleFileSelect = (e) => {
+  // Handle file selection - upload to server
+  const handleFileSelect = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setNewPostMediaUrl(reader.result);
-        setMediaPreview(reader.result);
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    const isVid = file.type.startsWith('video/');
+    setMediaIsVideo(isVid);
+    setMediaPreview(URL.createObjectURL(file));
+    setMediaUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('media', file);
+      const res = await axios.post('/api/upload/single', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      setNewPostMediaUrl(res.data.url);
+    } catch (err) {
+      console.error('Upload failed:', err);
+      alert(err.response?.data?.message || 'File upload failed');
+      setMediaPreview(null);
+      setMediaIsVideo(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    } finally {
+      setMediaUploading(false);
     }
   };
 
   const clearMedia = () => {
     setNewPostMediaUrl("");
     setMediaPreview(null);
+    setMediaIsVideo(false);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   // Create post handler
   const handleCreatePost = async () => {
-    if (!userId || !newPostContent.trim()) return;
+    if (!userId || !newPostContent.trim() || mediaUploading) return;
     // Append feeling to content if selected
     let finalContent = newPostContent;
     if (selectedFeeling) {
@@ -361,6 +379,7 @@ const LandingPage = ({ searchQuery = '' }) => {
       setNewPostContent("");
       setNewPostMediaUrl("");
       setMediaPreview(null);
+      setMediaIsVideo(false);
       setSelectedFeeling(null);
       setShowPollCreator(false);
       setPollOptions(['', '']);
@@ -840,11 +859,29 @@ const LandingPage = ({ searchQuery = '' }) => {
           {/* Media Preview */}
           {mediaPreview && (
             <div style={{ position: 'relative', marginBottom: '0.75rem', overflow: 'visible' }}>
-              <img
-                src={mediaPreview}
-                alt="Preview"
-                style={{ maxWidth: '100%', maxHeight: '400px', borderRadius: '12px', objectFit: 'contain', display: 'block' }}
-              />
+              {mediaIsVideo ? (
+                <video
+                  src={mediaPreview}
+                  controls
+                  style={{ maxWidth: '100%', maxHeight: '400px', borderRadius: '12px', display: 'block' }}
+                />
+              ) : (
+                <img
+                  src={mediaPreview}
+                  alt="Preview"
+                  style={{ maxWidth: '100%', maxHeight: '400px', borderRadius: '12px', objectFit: 'contain', display: 'block' }}
+                />
+              )}
+              {mediaUploading && (
+                <div style={{
+                  position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                  background: 'rgba(0,0,0,0.5)', borderRadius: '12px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: '#fff', fontWeight: '600', fontSize: '0.9rem'
+                }}>
+                  Uploading...
+                </div>
+              )}
               <button
                 onClick={clearMedia}
                 style={{
@@ -864,7 +901,7 @@ const LandingPage = ({ searchQuery = '' }) => {
               onMouseEnter={e => e.currentTarget.style.background = 'rgba(74, 222, 128, 0.2)'}
               onMouseLeave={e => e.currentTarget.style.background = 'rgba(74, 222, 128, 0.1)'}
             >
-              <FaImage style={{ fontSize: '1rem' }} /> Photo
+              <FaImage style={{ fontSize: '1rem' }} /> Photo/Video
             </button>
             <button
               onClick={() => setShowFeelingPicker(!showFeelingPicker)}

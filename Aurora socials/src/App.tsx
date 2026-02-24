@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Navbar from "./assets/components/Navbar.jsx";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
+import WelcomePage from "./assets/components/WelcomePage.jsx";
 import Register from "./assets/components/Register.jsx";
 import SignIn from "./assets/components/SignIn.jsx";
 import ForgotPassword from "./assets/components/ForgotPassword.jsx";
@@ -45,7 +46,8 @@ const App = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Register />} />
+        <Route path="/" element={<WelcomePage />} />
+        <Route path="/register" element={<Register />} />
         <Route path="/home" element={
           <>
             <Navbar />

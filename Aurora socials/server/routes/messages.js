@@ -1,6 +1,7 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
 import { authenticateToken } from '../middleware/auth.js';
+import { createNotification } from './notifications.js';
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -111,6 +112,25 @@ router.post('/send', authenticateToken, async (req, res) => {
       }
     });
     
+    // Create a notification for the receiver (throttled: only if no unread message notif from same sender)
+    const existingNotif = await prisma.notification.findFirst({
+      where: {
+        userId: receiverId,
+        fromUserId: senderId,
+        type: 'message',
+        read: false
+      }
+    });
+    if (!existingNotif) {
+      const senderUser = await prisma.user.findUnique({ where: { id: senderId }, select: { username: true } });
+      await createNotification({
+        userId: receiverId,
+        fromUserId: senderId,
+        type: 'message',
+        message: `${senderUser?.username || 'Someone'} sent you a message`
+      });
+    }
+
     // Bot auto-reply feature
     const botUser = await getBotUser();
     if (botUser && receiverId === botUser.id) {

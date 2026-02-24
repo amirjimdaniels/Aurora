@@ -97,7 +97,7 @@ const SignIn = () => {
                     <p style={{ marginTop: '1rem', textAlign: 'center' }}>
                         Don't have an account?{' '}
                         <span 
-                            onClick={() => navigate('/')} 
+                            onClick={() => navigate('/register')}
                             style={{ color: '#4a9eff', cursor: 'pointer', textDecoration: 'underline' }}
                         >
                             Register

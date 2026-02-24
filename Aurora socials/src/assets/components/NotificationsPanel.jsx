@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "../../api/axios.js";
-import { FaBell, FaTimes, FaHeart, FaComment, FaReply, FaSmile, FaUserPlus } from "react-icons/fa";
+import { FaBell, FaTimes, FaHeart, FaComment, FaReply, FaSmile, FaUserPlus, FaEnvelope } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
 const NotificationsPanel = ({ isOpen, onClose }) => {
@@ -64,8 +64,12 @@ const NotificationsPanel = ({ isOpen, onClose }) => {
 
   const handleNotificationClick = (notification) => {
     markAsRead(notification.id);
-    if (notification.postId) {
-      // Navigate to post or scroll to it
+    if (notification.type === 'message' && notification.fromUser) {
+      // Open MessagesPanel to the sender's conversation
+      window.dispatchEvent(new CustomEvent('openMessages', {
+        detail: { chat: notification.fromUser }
+      }));
+    } else if (notification.postId) {
       navigate(`/feed#post-${notification.postId}`);
     }
     onClose();
@@ -73,6 +77,8 @@ const NotificationsPanel = ({ isOpen, onClose }) => {
 
   const getNotificationIcon = (type) => {
     switch (type) {
+      case 'like':
+        return <FaHeart style={{ color: '#f43f5e' }} />;
       case 'reaction':
         return <FaSmile style={{ color: '#fbbf24' }} />;
       case 'comment':
@@ -81,6 +87,8 @@ const NotificationsPanel = ({ isOpen, onClose }) => {
         return <FaReply style={{ color: '#a78bfa' }} />;
       case 'comment_like':
         return <FaHeart style={{ color: '#ef4444' }} />;
+      case 'message':
+        return <FaEnvelope style={{ color: '#22c55e' }} />;
       case 'follow':
       case 'friend_request':
         return <FaUserPlus style={{ color: '#34d399' }} />;
