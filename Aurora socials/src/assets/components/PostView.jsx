@@ -230,7 +230,7 @@ const PostView = () => {
   const isSaved = post.savedBy?.some(s => s.userId === userId);
 
   return (
-    <div style={{ minHeight: '100vh', background: '#18191a', padding: '1rem' }}>
+    <div style={{ minHeight: '100vh', background: '#18191a', padding: '100px 1rem 2rem' }}>
       <div style={{ maxWidth: '700px', margin: '0 auto' }}>
         {/* Back button */}
         <button
