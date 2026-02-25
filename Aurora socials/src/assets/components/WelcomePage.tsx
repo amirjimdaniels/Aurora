@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { FaUsers, FaImages, FaCompass, FaHeart, FaCommentDots, FaPoll, FaBolt, FaShieldAlt, FaArrowRight } from 'react-icons/fa';
+import { FaUsers, FaImages, FaCompass, FaHeart, FaCommentDots, FaPoll, FaBolt, FaShieldAlt, FaArrowRight, FaReact, FaNodeJs, FaAws } from 'react-icons/fa';
+import { SiTypescript, SiPostgresql, SiPrisma, SiNginx, SiVite, SiExpress } from 'react-icons/si';
 
 const WelcomePage = () => {
   const navigate = useNavigate();
@@ -308,6 +309,49 @@ const WelcomePage = () => {
         >
           Get Started <FaArrowRight />
         </button>
+      </section>
+
+      {/* ===== POWERED BY ===== */}
+      <section style={{
+        padding: '4rem 1.5rem 3rem',
+        textAlign: 'center',
+        position: 'relative', zIndex: 1
+      }}>
+        <p style={{
+          color: '#64748b', fontSize: '0.85rem', textTransform: 'uppercase',
+          letterSpacing: '0.15em', fontWeight: 600, marginBottom: '2rem'
+        }}>
+          Powered By
+        </p>
+        <div style={{
+          display: 'flex', flexWrap: 'wrap', justifyContent: 'center',
+          gap: '2rem', maxWidth: '700px', margin: '0 auto'
+        }}>
+          {[
+            { icon: <FaReact />, label: 'React' },
+            { icon: <SiTypescript />, label: 'TypeScript' },
+            { icon: <FaNodeJs />, label: 'Node.js' },
+            { icon: <SiExpress />, label: 'Express' },
+            { icon: <SiPostgresql />, label: 'PostgreSQL' },
+            { icon: <SiPrisma />, label: 'Prisma' },
+            { icon: <FaAws />, label: 'AWS' },
+            { icon: <SiNginx />, label: 'Nginx' },
+            { icon: <SiVite />, label: 'Vite' },
+          ].map((tech, i) => (
+            <div key={i} style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem',
+              color: '#64748b', fontSize: '1.8rem',
+              transition: 'color 0.3s ease, transform 0.3s ease',
+              cursor: 'default'
+            }}
+              onMouseEnter={e => { e.currentTarget.style.color = '#a78bfa'; e.currentTarget.style.transform = 'translateY(-4px)'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = '#64748b'; e.currentTarget.style.transform = 'translateY(0)'; }}
+            >
+              {tech.icon}
+              <span style={{ fontSize: '0.7rem', fontWeight: 500, letterSpacing: '0.05em' }}>{tech.label}</span>
+            </div>
+          ))}
+        </div>
       </section>
 
       {/* ===== FOOTER ===== */}
