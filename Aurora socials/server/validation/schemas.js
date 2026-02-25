@@ -28,12 +28,28 @@ export const loginSchema = z.object({
     .min(1, 'Password is required')
 });
 
-export const passwordResetSchema = z.object({
-  username: z.string().min(1, 'Username is required'),
+// Step 1: Request a password reset code
+export const requestResetSchema = z.object({
   email: z.string().email('Invalid email address'),
+});
+
+// Step 2: Verify the 6-digit reset code
+export const verifyResetTokenSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  code: z.string()
+    .length(6, 'Reset code must be 6 digits')
+    .regex(/^\d{6}$/, 'Reset code must be 6 digits'),
+});
+
+// Step 3: Set new password with valid code
+export const passwordResetSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  code: z.string()
+    .length(6, 'Reset code must be 6 digits')
+    .regex(/^\d{6}$/, 'Reset code must be 6 digits'),
   newPassword: z.string()
     .min(8, 'Password must be at least 8 characters')
-    .max(100, 'Password is too long')
+    .max(100, 'Password is too long'),
 });
 
 // Post schemas

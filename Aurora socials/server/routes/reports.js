@@ -1,26 +1,12 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
 import { authenticateToken } from '../middleware/auth.js';
-import nodemailer from 'nodemailer';
+import { sendEmail } from '../services/email.js';
 
 const router = express.Router();
 const prisma = new PrismaClient();
 
 const ADMIN_EMAIL = 'amirbendaniels@gmail.com';
-
-// TODO (nice-to-have): Wire up Gmail SMTP for real email delivery.
-// Steps: 1) Enable 2FA on Gmail, 2) Generate an App Password,
-// 3) Set env vars: SMTP_HOST=smtp.gmail.com SMTP_PORT=587 SMTP_USER=amirbendaniels@gmail.com SMTP_PASS=<app-password>
-// Email transporter (configured via env vars, falls back to logging)
-let transporter = null;
-if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
-  transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: parseInt(process.env.SMTP_PORT || '587'),
-    secure: process.env.SMTP_SECURE === 'true',
-    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-  });
-}
 
 async function notifyAdmin(report, user) {
   const subject = `[Aurora] New ${report.type} report: ${report.title || report.subject || 'No title'}`;
@@ -42,21 +28,7 @@ ${report.steps ? `\nSteps to reproduce:\n${report.steps}` : ''}
 View all reports in the admin dashboard.
   `.trim();
 
-  if (transporter) {
-    try {
-      await transporter.sendMail({
-        from: process.env.SMTP_FROM || process.env.SMTP_USER,
-        to: ADMIN_EMAIL,
-        subject,
-        text,
-      });
-      console.log(`[Reports] Email sent to ${ADMIN_EMAIL}`);
-    } catch (err) {
-      console.error('[Reports] Failed to send email:', err.message);
-    }
-  } else {
-    console.log(`[Reports] Email notification (no SMTP configured):\nTo: ${ADMIN_EMAIL}\nSubject: ${subject}`);
-  }
+  await sendEmail({ to: ADMIN_EMAIL, subject, text });
 }
 
 // Create a report (bug, feature, contact, or post report)

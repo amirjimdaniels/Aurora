@@ -4,6 +4,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import bodyParser from 'body-parser';
 import bcrypt from 'bcrypt';
+import crypto from 'crypto';
 import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
 
@@ -12,7 +13,7 @@ const { PrismaClient } = pkg;
 const prisma = new PrismaClient();
 import { generateToken, generateAccessToken, generateRefreshToken, verifyRefreshToken, authenticateToken } from './middleware/auth.js';
 import { validate } from './middleware/validate.js';
-import { registerSchema, loginSchema, passwordResetSchema } from './validation/schemas.js';
+import { registerSchema, loginSchema, requestResetSchema, verifyResetTokenSchema, passwordResetSchema } from './validation/schemas.js';
 import postsRouter from './routes/posts.js';
 import savedPostsRouter from './routes/savedPosts.js';
 import commentsRouter from './routes/comments.js';
@@ -28,6 +29,7 @@ import eventsRouter from './routes/events.js';
 import groupsRouter from './routes/groups.js';
 import scheduledPostsRouter from './routes/scheduledPosts.js';
 import reportsRouter from './routes/reports.js';
+import { sendEmail } from './services/email.js';
 import uploadRouter from './routes/upload.js';
 import adminRouter from './routes/admin.js';
 import analyticsRouter from './routes/analytics.js';
@@ -253,39 +255,96 @@ app.post('/api/auth/refresh', async (req, res) => {
   }
 });
 
-// Verify identity for password reset
-app.post('/api/auth/verify-reset', passwordResetLimiter, async (req, res) => {
-  const { username, email } = req.body;
-  if (!username || !email) {
-    return res.status(400).json({ success: false, message: 'Username and email required.' });
-  }
+// Step 1: Request password reset — sends 6-digit code to email
+app.post('/api/auth/verify-reset', passwordResetLimiter, validate(requestResetSchema), async (req, res) => {
+  const { email } = req.body;
   try {
-    const user = await prisma.user.findUnique({ where: { username } });
-    if (!user || user.email !== email) {
-      return res.status(404).json({ success: false, message: 'No account found with that username and email.' });
+    const user = await prisma.user.findFirst({ where: { email } });
+
+    // Always return success to prevent email enumeration
+    if (!user) {
+      return res.json({ success: true, message: 'If an account with that email exists, a reset code has been sent.' });
     }
-    return res.json({ success: true, message: 'Identity verified.' });
+
+    // Generate 6-digit code with crypto CSPRNG
+    const codeNum = crypto.randomBytes(4).readUInt32BE(0) % 1000000;
+    const code = codeNum.toString().padStart(6, '0');
+
+    // Store SHA-256 hash + 15-min expiry
+    const hashedCode = crypto.createHash('sha256').update(code).digest('hex');
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        resetToken: hashedCode,
+        resetTokenExpiry: new Date(Date.now() + 15 * 60 * 1000),
+      },
+    });
+
+    // Send code via email (falls back to console.log if no SMTP)
+    await sendEmail({
+      to: email,
+      subject: 'Aurora Social - Password Reset Code',
+      text: `Your password reset code is: ${code}\n\nThis code expires in 15 minutes.\n\nIf you did not request this, please ignore this email.`,
+    });
+
+    return res.json({ success: true, message: 'If an account with that email exists, a reset code has been sent.' });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ success: false, message: 'Server error.' });
   }
 });
 
-// Reset password
-app.post('/api/auth/reset-password', passwordResetLimiter, validate(passwordResetSchema), async (req, res) => {
-  const { username, email, newPassword } = req.body;
+// Step 2: Verify the 6-digit reset code
+app.post('/api/auth/verify-token', passwordResetLimiter, validate(verifyResetTokenSchema), async (req, res) => {
+  const { email, code } = req.body;
   try {
-    const user = await prisma.user.findUnique({ where: { username } });
-    if (!user || user.email !== email) {
-      return res.status(404).json({ success: false, message: 'User not found.' });
+    const user = await prisma.user.findFirst({ where: { email } });
+    if (!user || !user.resetToken || !user.resetTokenExpiry) {
+      return res.status(400).json({ success: false, message: 'Invalid or expired reset code.' });
     }
-    
+
+    if (new Date() > new Date(user.resetTokenExpiry)) {
+      await prisma.user.update({ where: { id: user.id }, data: { resetToken: null, resetTokenExpiry: null } });
+      return res.status(400).json({ success: false, message: 'Reset code has expired. Please request a new one.' });
+    }
+
+    const hashedCode = crypto.createHash('sha256').update(code).digest('hex');
+    if (hashedCode !== user.resetToken) {
+      return res.status(400).json({ success: false, message: 'Invalid or expired reset code.' });
+    }
+
+    return res.json({ success: true, message: 'Code verified.' });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ success: false, message: 'Server error.' });
+  }
+});
+
+// Step 3: Reset password with valid code
+app.post('/api/auth/reset-password', passwordResetLimiter, validate(passwordResetSchema), async (req, res) => {
+  const { email, code, newPassword } = req.body;
+  try {
+    const user = await prisma.user.findFirst({ where: { email } });
+    if (!user || !user.resetToken || !user.resetTokenExpiry) {
+      return res.status(400).json({ success: false, message: 'Invalid or expired reset code.' });
+    }
+
+    if (new Date() > new Date(user.resetTokenExpiry)) {
+      await prisma.user.update({ where: { id: user.id }, data: { resetToken: null, resetTokenExpiry: null } });
+      return res.status(400).json({ success: false, message: 'Reset code has expired. Please request a new one.' });
+    }
+
+    const hashedCode = crypto.createHash('sha256').update(code).digest('hex');
+    if (hashedCode !== user.resetToken) {
+      return res.status(400).json({ success: false, message: 'Invalid or expired reset code.' });
+    }
+
     const hashedPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
     await prisma.user.update({
       where: { id: user.id },
-      data: { password: hashedPassword }
+      data: { password: hashedPassword, resetToken: null, resetTokenExpiry: null },
     });
-    
+
     return res.json({ success: true, message: 'Password reset successful.' });
   } catch (err) {
     console.error(err);
