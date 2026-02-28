@@ -16,6 +16,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd /home/ec2-user/Aurora
+            git stash
             git pull origin main
             cd "Aurora socials"
             npm install
