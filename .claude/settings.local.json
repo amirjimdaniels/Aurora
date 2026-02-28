@@ -22,7 +22,23 @@
       "Bash(git status:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(find:*)",
+      "Bash(npx tsc:*)",
+      "Bash(git stash:*)",
+      "Bash(npx vite build:*)",
+      "Bash(gh run list --limit 3)",
+      "Bash(ssh -i \"C:/Users/amirj/Desktop/Aurora-ec2-key/aurora-key.pem\" -o StrictHostKeyChecking=no ubuntu@3.12.144.194 \"cat /etc/nginx/conf.d/aurora.conf\")",
+      "Bash(ssh -i \"C:/Users/amirj/Desktop/Aurora-ec2-key/aurora-key.pem\" -o StrictHostKeyChecking=no ec2-user@3.12.144.194 \"cat /etc/nginx/conf.d/aurora.conf\")",
+      "Bash(ssh -i \"C:/Users/amirj/Desktop/Aurora-ec2-key/aurora-key.pem\" -o StrictHostKeyChecking=no ec2-user@3.12.144.194 \"cd ''/home/ec2-user/Aurora'' && git pull origin main\")",
+      "Bash(ssh -i \"C:/Users/amirj/Desktop/Aurora-ec2-key/aurora-key.pem\" -o StrictHostKeyChecking=no ec2-user@3.12.144.194 \"cd ''/home/ec2-user/Aurora'' && git stash && git pull origin main\")",
+      "Bash(ssh -i \"C:/Users/amirj/Desktop/Aurora-ec2-key/aurora-key.pem\" -o StrictHostKeyChecking=no ec2-user@3.12.144.194 \"cd ''/home/ec2-user/Aurora/Aurora socials'' && npm install && npx vite build 2>&1\")",
+      "Bash(ssh -i \"C:/Users/amirj/Desktop/Aurora-ec2-key/aurora-key.pem\" -o StrictHostKeyChecking=no ec2-user@3.12.144.194 \"cd ''/home/ec2-user/Aurora/Aurora socials/server'' && npm install && pm2 restart all && pm2 status\")",
+      "Bash(ssh -i \"C:/Users/amirj/Desktop/Aurora-ec2-key/aurora-key.pem\" ec2-user@3.12.144.194 \"cd Aurora && git stash && git pull origin main && cd ''Aurora socials'' && npm install && npx vite build && cd .. && npm install && pm2 restart all && pm2 status\")",
+      "Bash(ssh -i \"C:/Users/amirj/Desktop/Aurora-ec2-key/aurora-key.pem\" ec2-user@3.12.144.194 \"cd Aurora && git stash && git pull origin main && cd ''Aurora socials'' && npx prisma db push && npm install && npx vite build && cd .. && npm install && pm2 restart all && pm2 status\")",
+      "Bash(ssh -i \"C:/Users/amirj/Desktop/Aurora-ec2-key/aurora-key.pem\" ec2-user@3.12.144.194 \"cd Aurora/''Aurora socials''/server && npx prisma db push && cd .. && npm install && npx vite build && cd .. && npm install && pm2 restart all && pm2 status\")",
+      "Bash(ssh -i \"C:/Users/amirj/Desktop/Aurora-ec2-key/aurora-key.pem\" ec2-user@3.12.144.194 \"cd Aurora/''Aurora socials''/server && echo '''' >> .env && echo ''# SMTP \\(Gmail\\)'' >> .env && echo ''SMTP_HOST=smtp.gmail.com'' >> .env && echo ''SMTP_PORT=587'' >> .env && echo ''SMTP_USER=amirbendaniels@gmail.com'' >> .env && echo ''SMTP_PASS=lbif dewc tbsy bnqf'' >> .env && echo ''SMTP_FROM=amirbendaniels@gmail.com'' >> .env && tail -7 .env && cd ../.. && pm2 restart all && pm2 status\")",
+      "Bash(npm ls jspdf jspdf-autotable xlsx)"
     ]
   }
 }

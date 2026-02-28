@@ -150,12 +150,34 @@ const AdminDashboard = () => {
             <h1 style={{ fontSize: '1.75rem', fontWeight: '700', margin: 0 }}>Analytics Dashboard</h1>
             <p style={{ color: '#94a3b8', margin: '0.25rem 0 0', fontSize: '0.9rem' }}>Platform insights and metrics</p>
           </div>
-          <button
-            onClick={fetchAll}
-            style={{ padding: '0.5rem 1.25rem', background: '#334155', color: '#e2e8f0', border: '1px solid #475569', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem' }}
-          >
-            Refresh
-          </button>
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <button
+              onClick={async () => {
+                const { exportAnalyticsPDF } = await import('../../utils/exportAnalytics')
+                exportAnalyticsPDF({ overview, engagement, topCreators, growth, trending, distribution, patterns, sentiment })
+              }}
+              disabled={loading}
+              style={{ padding: '0.5rem 1.25rem', background: '#6366f1', color: '#fff', border: 'none', borderRadius: '8px', cursor: loading ? 'not-allowed' : 'pointer', fontSize: '0.85rem', fontWeight: '500', opacity: loading ? 0.5 : 1 }}
+            >
+              PDF Report
+            </button>
+            <button
+              onClick={async () => {
+                const { exportAnalyticsExcel } = await import('../../utils/exportAnalytics')
+                exportAnalyticsExcel({ overview, engagement, topCreators, growth, trending, distribution, patterns, sentiment })
+              }}
+              disabled={loading}
+              style={{ padding: '0.5rem 1.25rem', background: '#22c55e', color: '#fff', border: 'none', borderRadius: '8px', cursor: loading ? 'not-allowed' : 'pointer', fontSize: '0.85rem', fontWeight: '500', opacity: loading ? 0.5 : 1 }}
+            >
+              Excel Export
+            </button>
+            <button
+              onClick={fetchAll}
+              style={{ padding: '0.5rem 1.25rem', background: '#334155', color: '#e2e8f0', border: '1px solid #475569', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem' }}
+            >
+              Refresh
+            </button>
+          </div>
         </div>
 
         {/* Overview Stats */}
