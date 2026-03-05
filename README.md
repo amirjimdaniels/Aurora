@@ -1,208 +1,265 @@
-# 🌌 Aurora Socials
+# Aurora Social
 
-A modern, Facebook-style social media platform built with React and Node.js.
+A full-stack social media platform with real-time messaging, stories, analytics, AI-powered sentiment analysis, and more — built with React, TypeScript, Node.js, and PostgreSQL, deployed on AWS.
 
 ![React](https://img.shields.io/badge/React-19.2.0-61DAFB?logo=react)
-![Node.js](https://img.shields.io/badge/Node.js-25.3.0-339933?logo=nodedotjs)
-![Express](https://img.shields.io/badge/Express-5.2.1-000000?logo=express)
-![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?logo=prisma)
-![SQLite](https://img.shields.io/badge/SQLite-Database-003B57?logo=sqlite)
-
-## ✨ Features
-
-- **📝 Posts** - Create posts with text and image uploads
-- **❤️ Likes** - Like posts and comments
-- **💬 Comments** - Threaded comments with reply support
-- **👥 Follow System** - Follow/unfollow users
-- **💌 Direct Messages** - Chat with friends (mutual followers)
-- **🔖 Saved Posts** - Bookmark posts to view later
-- **👤 Profiles** - Customizable profiles with cover photos, bios, and more
-- **🔗 Share** - Copy post links to share
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- Node.js (v18 or higher)
-- npm or yarn
-
-### Installation
-
-1. **Clone and install dependencies:**
-   ```bash
-   cd "Aurora socials"
-   npm install
-   ```
-
-2. **Set up the database:**
-   ```bash
-   cd server
-   npm install
-   npx prisma generate
-   npx prisma migrate dev
-   ```
-
-3. **Start the backend server:**
-   ```bash
-   # In the server folder
-   node index.js
-   ```
-   Server runs on `http://localhost:5000`
-
-4. **Start the frontend (new terminal):**
-   ```bash
-   # In the Aurora socials folder
-   npm run dev
-   ```
-   Frontend runs on `http://localhost:5173`
-
-5. **Open your browser** to `http://localhost:5173` and register an account!
-
-## 📁 Project Structure
-
-```
-Aurora socials/
-├── src/                      # React frontend
-│   ├── App.tsx               # Main router
-│   └── assets/components/    # React components
-│       ├── Navbar.jsx        # Navigation bar
-│       ├── LandingPage.jsx   # Main feed
-│       ├── Profile.jsx       # User profiles
-│       ├── PostCard.jsx      # Reusable post component
-│       ├── SavedPosts.jsx    # Bookmarked posts
-│       ├── MessagesPanel.jsx # DM slide-out
-│       └── ...
-│
-├── server/                   # Express backend
-│   ├── index.js              # Server entry point
-│   ├── routes/               # API endpoints
-│   │   ├── posts.js          # Post CRUD
-│   │   ├── comments.js       # Comments & replies
-│   │   ├── users.js          # User profiles
-│   │   ├── follow.js         # Follow system
-│   │   ├── messages.js       # Direct messages
-│   │   └── savedPosts.js     # Saved posts
-│   └── prisma/
-│       └── schema.prisma     # Database schema
-│
-└── package.json
-```
-
-## 🛠 Tech Stack
-
-| Layer | Technology | Purpose |
-|-------|------------|---------|
-| **Frontend** | React 19 + Vite | UI & build tooling |
-| **Routing** | React Router 6 | Client-side navigation |
-| **Styling** | Tailwind CSS + CSS | Utility & custom styles |
-| **HTTP** | Axios | API requests |
-| **Backend** | Express 5 | REST API server |
-| **ORM** | Prisma | Database queries |
-| **Database** | SQLite | Data storage |
-
-## 📡 API Overview
-
-| Endpoint | Description |
-|----------|-------------|
-| `POST /api/register` | Create account |
-| `POST /api/login` | Sign in |
-| `GET /api/posts` | Get feed |
-| `POST /api/posts` | Create post |
-| `POST /api/posts/:id/like` | Toggle like |
-| `POST /api/comments/:id/comment` | Add comment |
-| `POST /api/follow/follow` | Follow user |
-| `POST /api/messages/send` | Send DM |
-| `GET /api/users/:id` | Get profile |
-
-See [ARCHITECTURE.md](ARCHITECTURE.md) for complete API documentation.
-
-## 🗄 Database Models
-
-- **User** - Accounts & profiles
-- **Post** - User content
-- **Comment** - Post comments (with threading)
-- **Like** - Post likes
-- **CommentLike** - Comment likes
-- **Follow** - User relationships
-- **Message** - Direct messages
-- **SavedPost** - Bookmarks
-
-## 📜 Scripts
-
-```bash
-# Frontend
-npm run dev      # Start dev server
-npm run build    # Production build
-npm run preview  # Preview build
-
-# Backend
-node server/index.js  # Start server
-
-# Database
-npx prisma studio     # Visual database editor
-npx prisma migrate dev # Run migrations
-npx prisma generate   # Generate client
-```
-
-## 🔧 Configuration
-
-- **Frontend port**: `5173` (Vite default)
-- **Backend port**: `5000`
-- **Database**: `server/prisma/dev.db`
-- **Max upload size**: `50MB` (for base64 images)
-
-## 📖 Documentation
-
-For detailed architecture, data flow diagrams, and UML:
-→ **[ARCHITECTURE.md](ARCHITECTURE.md)**
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
-
-## 📄 License
-
-This project is for educational purposes.
+![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript)
+![Node.js](https://img.shields.io/badge/Node.js-20+-339933?logo=nodedotjs)
+![Express](https://img.shields.io/badge/Express-5.2-000000?logo=express)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql)
+![Prisma](https://img.shields.io/badge/Prisma-5.15-2D3748?logo=prisma)
+![AWS](https://img.shields.io/badge/AWS-EC2%20%7C%20RDS%20%7C%20S3-FF9900?logo=amazonaws)
 
 ---
 
-<p align="center">
-  Built with ❤️ using React & Node.js
-</p>
+## Features
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Core Social
+- **Posts** — Text, images, videos, GIFs with hashtag support
+- **Reactions** — Emoji reactions beyond simple likes
+- **Comments** — Threaded replies with likes
+- **Polls** — Create polls attached to posts
+- **Stories** — 24-hour expiring photo/video stories
+- **Direct Messages** — Real-time chat with typing indicators
+- **Follow System** — Follow/unfollow with follower counts
+- **Friend Requests** — Send, accept, reject friend requests
+- **Saved Posts** — Bookmark posts for later
+- **Notifications** — Likes, comments, follows, messages, friend requests
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Profiles & Discovery
+- **User Profiles** — Bio, profile picture, cover photo, birthday, location
+- **Explore Feed** — Search posts by content or hashtag
+- **Trending Hashtags** — Discover popular topics
+- **User Suggestions** — Recommended users to follow
+
+### Groups & Events
+- **Groups** — Public/private communities with group posts
+- **Events** — Create events with RSVP tracking
+
+### Admin & Analytics
+- **Analytics Dashboard** — Engagement metrics, user growth, retention cohorts, posting patterns
+- **Sentiment Analysis** — AI-powered post sentiment classification (Claude/GPT)
+- **Content Distribution** — Breakdown of post types (text, media, polls)
+- **Top Creators** — Ranked by post and comment activity
+- **PDF/Excel Export** — Download analytics reports
+
+### Platform
+- **Secure Auth** — JWT with HttpOnly cookies, access + refresh tokens
+- **Email Password Reset** — 6-digit code via email with SHA-256 hashed tokens
+- **File Uploads** — Images and videos via AWS S3
+- **Synthetic Users** — AI-generated test users with realistic personas
+- **AuroraBot** — Auto-follow and auto-reply bot
+- **Scheduled Posts** — Queue posts for future publishing
+- **Bug/Feature Reporting** — In-app support with email notifications
+
+---
+
+## Tech Stack
+
+| Layer | Technology | Purpose |
+|-------|------------|---------|
+| **Frontend** | React 19 + TypeScript | UI components |
+| **Build** | Vite 7 | Dev server & bundling |
+| **Styling** | Tailwind CSS 4 + CSS | Utility & custom styles |
+| **Charts** | Recharts 3 | Analytics visualizations |
+| **HTTP** | Axios | API requests |
+| **Export** | jsPDF + SheetJS | PDF & Excel report generation |
+| **Backend** | Express 5 | REST API server |
+| **ORM** | Prisma 5 | Type-safe database queries |
+| **Database** | PostgreSQL 16 (AWS RDS) | Production data storage |
+| **Auth** | JWT + bcrypt | Authentication & password hashing |
+| **Validation** | Zod 4 | Request schema validation |
+| **Email** | Nodemailer | Password resets & notifications |
+| **Storage** | AWS S3 | Image & video uploads |
+| **AI** | Anthropic Claude + OpenAI GPT | Sentiment analysis & user generation |
+| **Hosting** | AWS EC2 | Application server |
+| **Proxy** | Nginx | Reverse proxy & static file serving |
+| **Process** | PM2 | Node.js process management |
+| **CI/CD** | GitHub Actions | Auto-deploy on push to main |
+
+---
+
+## Project Structure
+
 ```
-<img width="988" height="893" alt="PlantuML" src="https://github.com/user-attachments/assets/b5589b3f-fc1e-42ef-81c4-d43354b60bee" />
+Aurora socials/
+├── src/                           # React frontend (TypeScript)
+│   ├── App.tsx                    # Router (17 routes)
+│   ├── api/axios.tsx              # Axios instance
+│   ├── utils/
+│   │   ├── exportAnalytics.ts     # PDF & Excel export
+│   │   └── sanitize.ts            # XSS sanitization
+│   └── assets/components/
+│       ├── WelcomePage.tsx         # Landing page
+│       ├── LandingPage.tsx        # Main feed
+│       ├── Navbar.tsx             # Navigation bar
+│       ├── PostCard.tsx           # Post component
+│       ├── PostView.tsx           # Single post view
+│       ├── Profile.tsx            # User profiles
+│       ├── MessagesPanel.tsx      # DM slide-out panel
+│       ├── NotificationsPanel.tsx # Notifications panel
+│       ├── Stories.tsx            # Stories carousel
+│       ├── Friends.tsx            # Friends management
+│       ├── AdminDashboard.tsx     # Analytics dashboard
+│       ├── Register.tsx           # Registration
+│       ├── SignIn.tsx             # Login
+│       ├── ForgotPassword.tsx     # Email-based password reset
+│       ├── SavedPosts.tsx         # Bookmarked posts
+│       ├── Support.tsx            # Bug/feature reports
+│       └── UserGenerator.tsx      # Synthetic user creation
+│
+├── server/                        # Express backend
+│   ├── index.js                   # Entry point & auth routes
+│   ├── routes/                    # API route modules (19 files)
+│   │   ├── posts.js               # Post CRUD & reactions
+│   │   ├── comments.js            # Comments & replies
+│   │   ├── users.js               # User profiles
+│   │   ├── friends.js             # Friend requests
+│   │   ├── follow.js              # Follow system
+│   │   ├── messages.js            # Direct messaging
+│   │   ├── savedPosts.js          # Bookmarks
+│   │   ├── stories.js             # 24hr stories
+│   │   ├── polls.js               # Post polls
+│   │   ├── events.js              # Events & RSVP
+│   │   ├── groups.js              # Communities
+│   │   ├── notifications.js       # Notification system
+│   │   ├── scheduledPosts.js      # Post scheduling
+│   │   ├── reports.js             # Bug/feature reporting
+│   │   ├── analytics.js           # Admin analytics
+│   │   ├── admin.js               # Admin tools
+│   │   └── news.js                # External news feed
+│   ├── middleware/
+│   │   ├── auth.js                # JWT authentication
+│   │   ├── adminAuth.js           # Developer-only access
+│   │   ├── validate.js            # Zod validation
+│   │   └── upload.js              # S3/local file uploads
+│   ├── services/
+│   │   ├── email.js               # Nodemailer utility
+│   │   ├── analytics/             # Analytics computation
+│   │   ├── llm/                   # AI provider abstraction
+│   │   ├── imageGen/              # DALL-E integration
+│   │   └── syntheticUsers/        # Test user generation
+│   ├── validation/schemas.js      # Zod schemas
+│   └── prisma/schema.prisma       # Database schema (32 models)
+│
+├── .github/workflows/deploy.yml   # CI/CD auto-deploy
+└── package.json
+```
 
-<img width="1873" height="732" alt="Backend uml" src="https://github.com/user-attachments/assets/e5f5c8cd-91cb-4419-903b-579f41154018" />
+---
 
+## Database Models
 
+| Category | Models |
+|----------|--------|
+| **Users** | User (with developer flag, reset tokens) |
+| **Content** | Post, Comment, Like, CommentLike, Reaction, SavedPost |
+| **Social** | Friendship, Follow, Message |
+| **Media** | Story, StoryView, Hashtag, PostHashtag |
+| **Engagement** | Poll, PollOption, PollVote, Notification |
+| **Communities** | Group, GroupMember, GroupPost, Event, EventRSVP |
+| **Admin** | Report, ScheduledPost |
+| **Analytics** | DailyEngagement, UserActivityMetric, HashtagTrend, PostSentiment |
 
+---
 
+## API Overview
+
+| Category | Endpoints | Description |
+|----------|-----------|-------------|
+| **Auth** | 8 | Register, login, logout, token refresh, password reset (3-step) |
+| **Posts** | 10 | CRUD, search, hashtags, reactions |
+| **Comments** | 3 | Create, like, delete (with threading) |
+| **Users** | 3 | Profiles, suggestions, updates |
+| **Friends** | 5 | Request, accept, reject, list, status |
+| **Follow** | 5 | Follow, unfollow, counts, lists |
+| **Messages** | 7 | Send, conversations, unread, typing indicators |
+| **Stories** | 5 | Create, feed, view tracking |
+| **Polls** | 4 | Create, vote, results |
+| **Events** | 6 | Create, RSVP, user events |
+| **Groups** | 8 | Create, join, post, manage |
+| **Notifications** | 5 | Fetch, mark read, cleanup |
+| **Scheduled Posts** | 5 | Create, update, publish |
+| **Reports** | 5 | Submit, track, moderate |
+| **Analytics** | 10 | Overview, engagement, growth, sentiment, export |
+
+---
+
+## Quick Start
+
+### Prerequisites
+- Node.js 20+
+- PostgreSQL (or use SQLite for local dev)
+
+### Installation
+
+```bash
+cd "Aurora socials"
+npm install
+
+cd server
+npm install
+npx prisma generate
+npx prisma db push
+```
+
+### Environment Variables
+
+Create `server/.env`:
+```env
+DATABASE_URL="postgresql://user:password@localhost:5432/aurora_social"
+JWT_SECRET=your-secret-key
+JWT_EXPIRES_IN=7d
+ADMIN_API_KEY=your-admin-key
+
+# Optional
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-app-password
+OPENAI_API_KEY=sk-...
+ANTHROPIC_API_KEY=sk-ant-...
+```
+
+### Run
+
+```bash
+# Terminal 1: Backend
+cd server && node index.js
+
+# Terminal 2: Frontend
+npm run dev
+```
+
+Open [http://localhost:5173](http://localhost:5173)
+
+---
+
+## Deployment
+
+Deployed on AWS with auto-deploy via GitHub Actions on push to `main`.
+
+| Service | Purpose |
+|---------|---------|
+| **EC2** | Application server (Node.js + Nginx) |
+| **RDS** | PostgreSQL database |
+| **S3** | Media file storage |
+| **PM2** | Process management |
+| **GitHub Actions** | CI/CD pipeline |
+
+---
+
+## Security
+
+- JWT with HttpOnly cookies (access + refresh tokens)
+- bcrypt password hashing (10 salt rounds)
+- Rate limiting on auth endpoints
+- Helmet.js HTTP security headers
+- Zod schema validation on all inputs
+- DOMPurify XSS prevention
+- CORS configuration
+- SHA-256 hashed password reset tokens with 15-minute expiry
+
+---
+
+Built with React, TypeScript, Node.js, Express, PostgreSQL, Prisma, and AWS.
