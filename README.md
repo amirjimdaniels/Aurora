@@ -262,4 +262,13 @@ Deployed on AWS with auto-deploy via GitHub Actions on push to `main`.
 
 ---
 
-Built with React, TypeScript, Node.js, Express, PostgreSQL, Prisma, and AWS.
+Built with React, TypeScript, Node.js, Express, PostgreSQL, Prisma, and AWS.<img width="1285" height="1232" alt="UML 7" src="https://github.com/user-attachments/assets/73e02e15-9e8a-4572-94ab-e00ab95a6c94" />
+<img width="714" height="697" alt="UML 6" src="https://github.com/user-attachments/assets/0c40da25-d124-4b1f-a6ce-2e6bd7e35275" />
+<img width="672" height="877" alt="UML 5" src="https://github.com/user-attachments/assets/6697223b-ebfb-49b3-9059-7eca24c54774" />
+<img width="805" height="1115" alt="UML 4" src="https://github.com/user-attachments/assets/40ec5507-6dc6-4049-8a05-1b0e69149c73" />
+<img width="2765" height="596" alt="UML 3" src="https://github.com/user-attachments/assets/5566fef8-3120-4b05-96bc-9919e544d011" />
+<img width="1875" height="451" alt="UML 2" src="https://github.com/user-attachments/assets/b7a2fb6d-2ada-41b7-8cb1-c31953eee1ca" />
+<img width="1612" height="756" alt="UML 1" src="https://github.com/user-attachments/assets/32191b4c-1750-44b1-8920-082c8be59376" />
+
+
+
