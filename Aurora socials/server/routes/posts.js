@@ -1,7 +1,5 @@
 import express from 'express';
-import pkg from '@prisma/client';
-const { PrismaClient } = pkg;
-const prisma = new PrismaClient();
+import prisma from '../lib/prisma.js';
 import { createNotification } from './notifications.js';
 import { authenticateToken } from '../middleware/auth.js';
 
@@ -45,7 +43,7 @@ router.get('/', async (req, res) => {
           }
         },
         comments: {
-          include: { 
+          include: {
             author: { select: { id: true, username: true, profilePicture: true } },
             likes: true,
             replies: {
@@ -53,11 +51,13 @@ router.get('/', async (req, res) => {
                 author: { select: { id: true, username: true, profilePicture: true } },
                 likes: true
               },
-              orderBy: { createdAt: 'asc' }
+              orderBy: { createdAt: 'asc' },
+              take: 3
             }
           },
           where: { parentId: null },
-          orderBy: { createdAt: 'asc' }
+          orderBy: { createdAt: 'asc' },
+          take: 10
         },
         savedBy: true,
         hashtags: {

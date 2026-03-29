@@ -1,10 +1,9 @@
 import express from 'express';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { createNotification } from './notifications.js';
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 // Bot username for auto-follow feature
 const BOT_USERNAME = 'AuroraBot';

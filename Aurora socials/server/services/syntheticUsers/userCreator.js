@@ -1,6 +1,4 @@
-import pkg from '@prisma/client';
-const { PrismaClient } = pkg;
-const prisma = new PrismaClient();
+import prisma from '../../lib/prisma.js';
 import bcrypt from 'bcrypt';
 import { generatePersona } from './personaGenerator.js';
 import { generatePostsForPersona } from './postGenerator.js';

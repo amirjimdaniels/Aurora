@@ -8,9 +8,7 @@ import crypto from 'crypto';
 import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
 
-import pkg from '@prisma/client';
-const { PrismaClient } = pkg;
-const prisma = new PrismaClient();
+import prisma from './lib/prisma.js';
 import { generateToken, generateAccessToken, generateRefreshToken, verifyRefreshToken, authenticateToken } from './middleware/auth.js';
 import { validate } from './middleware/validate.js';
 import { registerSchema, loginSchema, requestResetSchema, verifyResetTokenSchema, passwordResetSchema } from './validation/schemas.js';
@@ -354,4 +352,14 @@ app.post('/api/auth/reset-password', passwordResetLimiter, validate(passwordRese
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
+});
+
+process.on('SIGTERM', async () => {
+  await prisma.$disconnect();
+  process.exit(0);
+});
+
+process.on('SIGINT', async () => {
+  await prisma.$disconnect();
+  process.exit(0);
 });

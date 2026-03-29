@@ -1,6 +1,4 @@
-import pkg from '@prisma/client';
-const { PrismaClient } = pkg;
-const prisma = new PrismaClient();
+import prisma from '../../lib/prisma.js';
 
 export async function getEngagementTimeSeries(days = 30) {
   const since = new Date();

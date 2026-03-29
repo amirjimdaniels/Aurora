@@ -1,7 +1,5 @@
 import express from 'express';
-import pkg from '@prisma/client';
-const { PrismaClient } = pkg;
-const prisma = new PrismaClient();
+import prisma from '../lib/prisma.js';
 
 const router = express.Router();
 
@@ -14,21 +12,22 @@ router.get('/:userId', async (req, res) => {
       orderBy: { createdAt: 'desc' },
       take: 50
     });
-    
-    // Enrich notifications with user data
-    const enrichedNotifications = await Promise.all(
-      notifications.map(async (notif) => {
-        let fromUser = null;
-        if (notif.fromUserId) {
-          fromUser = await prisma.user.findUnique({
-            where: { id: notif.fromUserId },
-            select: { id: true, username: true, profilePicture: true }
-          });
-        }
-        return { ...notif, fromUser };
-      })
-    );
-    
+
+    // Batch-fetch all fromUsers in a single query instead of N individual queries
+    const fromUserIds = [...new Set(notifications.map(n => n.fromUserId).filter(Boolean))];
+    const fromUsers = fromUserIds.length > 0
+      ? await prisma.user.findMany({
+          where: { id: { in: fromUserIds } },
+          select: { id: true, username: true, profilePicture: true }
+        })
+      : [];
+    const fromUserMap = Object.fromEntries(fromUsers.map(u => [u.id, u]));
+
+    const enrichedNotifications = notifications.map(notif => ({
+      ...notif,
+      fromUser: notif.fromUserId ? (fromUserMap[notif.fromUserId] ?? null) : null
+    }));
+
     res.json(enrichedNotifications);
   } catch (err) {
     console.error('Error fetching notifications:', err);

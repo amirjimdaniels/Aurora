@@ -1,10 +1,9 @@
 import express from 'express';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { createNotification } from './notifications.js';
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 // Bot configuration
 const BOT_USERNAME = 'AuroraBot';
@@ -172,11 +171,13 @@ router.get('/conversation/:userId/:otherUserId', async (req, res) => {
           { senderId: id2, receiverId: id1 }
         ]
       },
-      orderBy: { createdAt: 'asc' },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
       include: {
         sender: { select: { id: true, username: true, profilePicture: true } }
       }
     });
+    messages.reverse();
     
     // Mark messages as read
     await prisma.message.updateMany({
@@ -297,7 +298,7 @@ router.get('/typing/:userId', (req, res) => {
   
   const typingToMe = [];
   
-  for (const [key, value] of typingUsers.entries()) {
+  for (const [, value] of typingUsers.entries()) {
     if (value.receiverId === myId) {
       typingToMe.push({
         userId: value.senderId,

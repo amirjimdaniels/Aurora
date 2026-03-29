@@ -1,10 +1,9 @@
 import express from 'express';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { sendEmail } from '../services/email.js';
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 const ADMIN_EMAIL = 'amirbendaniels@gmail.com';
 

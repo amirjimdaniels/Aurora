@@ -54,6 +54,8 @@ model Post {
   hashtags  PostHashtag[]
   poll      Poll?
   sentiment PostSentiment?
+
+  @@index([authorId])
 }
 
 model Like {
@@ -62,6 +64,9 @@ model Like {
   userId  Int
   post    Post @relation(fields: [postId], references: [id])
   postId  Int
+
+  @@index([postId])
+  @@index([userId])
 }
 
 model Comment {
@@ -76,6 +81,10 @@ model Comment {
   parent    Comment? @relation("CommentReplies", fields: [parentId], references: [id])
   replies   Comment[] @relation("CommentReplies")
   likes     CommentLike[]
+
+  @@index([postId])
+  @@index([authorId])
+  @@index([parentId])
 }
 
 model CommentLike {
@@ -85,6 +94,7 @@ model CommentLike {
   comment   Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
   commentId Int
   @@unique([userId, commentId])
+  @@index([commentId])
 }
 
 model SavedPost {
@@ -93,6 +103,9 @@ model SavedPost {
   userId  Int
   post    Post @relation(fields: [postId], references: [id])
   postId  Int
+
+  @@index([userId])
+  @@index([postId])
 }
 
 model Friendship {
@@ -104,6 +117,7 @@ model Friendship {
   sender     User     @relation("SentRequests", fields: [senderId], references: [id])
   receiver   User     @relation("ReceivedRequests", fields: [receiverId], references: [id])
   @@unique([senderId, receiverId])
+  @@index([receiverId])
 }
 
 model Follow {
@@ -114,6 +128,7 @@ model Follow {
   follower    User     @relation("Following", fields: [followerId], references: [id])
   following   User     @relation("Followers", fields: [followingId], references: [id])
   @@unique([followerId, followingId])
+  @@index([followingId])
 }
 
 model Message {
@@ -125,6 +140,9 @@ model Message {
   read       Boolean  @default(false)
   sender     User     @relation("SentMessages", fields: [senderId], references: [id])
   receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+
+  @@index([senderId, receiverId])
+  @@index([receiverId, read])
 }
 
 model Reaction {
@@ -155,6 +173,7 @@ model PostHashtag {
   hashtagId Int
   createdAt DateTime @default(now())
   @@unique([postId, hashtagId])
+  @@index([hashtagId])
 }
 
 model Notification {
@@ -167,6 +186,9 @@ model Notification {
   fromUserId Int?    // User who triggered the notification
   postId    Int?     // Related post if applicable
   commentId Int?     // Related comment if applicable
+
+  @@index([userId])
+  @@index([userId, read])
 }
 
 // Stories - disappear after 24 hours
@@ -179,6 +201,9 @@ model Story {
   authorId  Int
   author    User        @relation(fields: [authorId], references: [id])
   views     StoryView[]
+
+  @@index([authorId])
+  @@index([expiresAt])
 }
 
 model StoryView {
@@ -231,6 +256,8 @@ model Event {
   authorId    Int
   author      User        @relation(fields: [authorId], references: [id])
   rsvps       EventRSVP[]
+
+  @@index([authorId])
 }
 
 model EventRSVP {
@@ -265,6 +292,7 @@ model GroupMember {
   joinedAt  DateTime @default(now())
   group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
   @@unique([groupId, userId])
+  @@index([userId])
 }
 
 model GroupPost {
@@ -275,6 +303,9 @@ model GroupPost {
   groupId   Int
   authorId  Int
   group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@index([groupId])
+  @@index([authorId])
 }
 
 // Scheduled posts
@@ -287,6 +318,9 @@ model ScheduledPost {
   authorId    Int
   author      User     @relation(fields: [authorId], references: [id])
   published   Boolean  @default(false)
+
+  @@index([authorId])
+  @@index([scheduledAt, published])
 }
 
 // Reports - for moderation, bugs, features, contact
@@ -307,6 +341,9 @@ model Report {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   userId      Int
+
+  @@index([userId])
+  @@index([status])
 }
 
 // ---- Analytics Models ----
@@ -334,6 +371,7 @@ model UserActivityMetric {
   reactionsGiven Int      @default(0)
   createdAt      DateTime @default(now())
   @@unique([date, userId])
+  @@index([userId])
 }
 
 model HashtagTrend {
@@ -344,6 +382,7 @@ model HashtagTrend {
   engagementScore Float    @default(0)
   createdAt       DateTime @default(now())
   @@unique([date, hashtagId])
+  @@index([hashtagId])
 }
 
 model PostSentiment {
