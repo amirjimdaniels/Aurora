@@ -7,6 +7,7 @@ import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
+import compression from 'compression';
 
 import prisma from './lib/prisma.js';
 import { generateToken, generateAccessToken, generateRefreshToken, verifyRefreshToken, authenticateToken } from './middleware/auth.js';
@@ -62,6 +63,9 @@ const passwordResetLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+
+// Gzip compression for all responses
+app.use(compression());
 
 // Security headers
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));

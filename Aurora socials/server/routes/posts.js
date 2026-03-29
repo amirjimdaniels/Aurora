@@ -83,12 +83,19 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Cache for trending hashtags — recalculated at most once every 10 minutes
+let trendingCache = { data: null, expires: 0 };
+
 // Get trending hashtags
 router.get('/trending/hashtags', async (req, res) => {
   try {
+    if (trendingCache.data && Date.now() < trendingCache.expires) {
+      return res.json(trendingCache.data);
+    }
+
     // Get hashtags with most posts in the last 7 days
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    
+
     const trending = await prisma.hashtag.findMany({
       include: {
         posts: {
@@ -101,7 +108,7 @@ router.get('/trending/hashtags', async (req, res) => {
         }
       }
     });
-    
+
     // Sort by post count and format response
     const formattedTrending = trending
       .map(tag => ({
@@ -113,7 +120,9 @@ router.get('/trending/hashtags', async (req, res) => {
       .filter(tag => tag.postCount > 0)
       .sort((a, b) => b.postCount - a.postCount)
       .slice(0, 10);
-    
+
+    trendingCache = { data: formattedTrending, expires: Date.now() + 10 * 60 * 1000 };
+
     res.json(formattedTrending);
   } catch (err) {
     console.error(err);
