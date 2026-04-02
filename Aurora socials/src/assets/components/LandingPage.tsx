@@ -10,6 +10,10 @@ import FriendsPanel from "./FriendsPanel.tsx";
 import PostCard from "./PostCard.tsx";
 import Stories from "./Stories.tsx";
 
+// Module-level cache — persists across page navigations without a library
+let postsCache: { data: unknown[] | null; timestamp: number } = { data: null, timestamp: 0 };
+const POSTS_CACHE_TTL = 60 * 1000; // 1 minute
+
 const LandingPage = ({ searchQuery = '' }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -248,6 +252,7 @@ const LandingPage = ({ searchQuery = '' }) => {
       setPostReactionSearch("");
       // Refresh posts to show updated reactions
       const updated = await axios.get("/api/posts");
+      postsCache = { data: updated.data, timestamp: Date.now() };
       setPosts(updated.data);
     } catch (err) {
       console.error('Failed to add reaction:', err);
@@ -389,6 +394,7 @@ const LandingPage = ({ searchQuery = '' }) => {
       setScheduledTime('');
       if (fileInputRef.current) fileInputRef.current.value = "";
       const updated = await axios.get("/api/posts");
+      postsCache = { data: updated.data, timestamp: Date.now() };
       setPosts(updated.data);
     } catch (err) {}
   };
@@ -458,6 +464,7 @@ const LandingPage = ({ searchQuery = '' }) => {
   const refreshPosts = async () => {
     try {
       const response = await axios.get("/api/posts");
+      postsCache = { data: response.data, timestamp: Date.now() };
       setPosts(response.data);
       // Also refresh hashtag posts if a hashtag is selected
       if (selectedHashtag) {
@@ -471,8 +478,20 @@ const LandingPage = ({ searchQuery = '' }) => {
 
   useEffect(() => {
     const fetchPosts = async () => {
+      // If cache is fresh, show it immediately and skip the fetch
+      if (postsCache.data && Date.now() - postsCache.timestamp < POSTS_CACHE_TTL) {
+        setPosts(postsCache.data);
+        setLoading(false);
+        return;
+      }
+      // If stale cache exists, show it instantly while re-fetching in background
+      if (postsCache.data) {
+        setPosts(postsCache.data);
+        setLoading(false);
+      }
       try {
         const response = await axios.get("/api/posts");
+        postsCache = { data: response.data, timestamp: Date.now() };
         setPosts(response.data);
       } catch (err) {
         setError("Failed to load posts");
