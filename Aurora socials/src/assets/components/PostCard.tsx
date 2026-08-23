@@ -145,14 +145,22 @@ const PostCard = ({ post, currentUserId, currentUserProfile = null, currentUsern
     }
   };
 
-  // Like handler
+  // Like handler — updates local state immediately; the API call happens
+  // in the background. No refetch, so a stale feed cache elsewhere can't
+  // clobber what the user just did to their own screen.
   const handleLike = async (e) => {
     if (e) e.stopPropagation();
     if (!currentUserId) return;
+    const previousLikes = localPost.likes || [];
+    const optimisticLikes = likedByUser
+      ? previousLikes.filter(like => like.userId !== currentUserId)
+      : [...previousLikes, { userId: currentUserId }];
+    setLocalPost(prev => ({ ...prev, likes: optimisticLikes }));
     try {
       await axios.post(`/api/posts/${localPost.id}/like`, { userId: currentUserId });
-      refreshPost();
-    } catch (err) {}
+    } catch (err) {
+      setLocalPost(prev => ({ ...prev, likes: previousLikes }));
+    }
   };
 
   // Save handler

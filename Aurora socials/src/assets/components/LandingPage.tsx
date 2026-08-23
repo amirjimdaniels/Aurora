@@ -616,14 +616,25 @@ const LandingPage = ({ searchQuery = '' }) => {
     return () => window.removeEventListener('profileUpdated', fetchUserProfile);
   }, []);
 
-  // Like/unlike handler
+  // Like/unlike handler — patches local state immediately instead of
+  // refetching the whole feed, so a stale feed cache can't undo the user's
+  // own action on their own screen.
   const handleLike = async (postId) => {
     if (!userId) return;
+    const target = posts.find(p => p.id === postId);
+    const wasLiked = target?.likes?.some(l => l.userId === userId);
+    const patchLikes = (post, liked) => ({
+      ...post,
+      likes: liked
+        ? (post.likes || []).filter(l => l.userId !== userId)
+        : [...(post.likes || []), { userId }]
+    });
+    setPosts(prev => prev.map(p => p.id === postId ? patchLikes(p, wasLiked) : p));
     try {
       await axios.post(`/api/posts/${postId}/like`, { userId });
-      const updated = await axios.get("/api/posts");
-      setPosts(updated.data);
-    } catch (err) {}
+    } catch (err) {
+      setPosts(prev => prev.map(p => p.id === postId ? patchLikes(p, !wasLiked) : p));
+    }
   };
 
   // Save/unsave handler
