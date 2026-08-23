@@ -30,9 +30,22 @@ async function linkHashtagsToPost(postId, hashtags) {
   }
 }
 
+// Cache for the main feed — recalculated at most once every 15s.
+// Likes/reactions can drift stale within that window (acceptable); post
+// create/delete bust it explicitly since those are low-frequency writes.
+// TODO: this is a single global cache with no per-user key. Fine while the
+// feed is the same latest-20-posts for everyone; if the feed ever becomes
+// personalized (following-only, muted users, etc.) this needs a cache key
+// per user instead of one shared object, or users will see each other's cache.
+let feedCache = { data: null, expires: 0 };
+
 // Get posts for feed
 router.get('/', async (req, res) => {
   try {
+    if (feedCache.data && Date.now() < feedCache.expires) {
+      return res.json(feedCache.data);
+    }
+
     const posts = await prisma.post.findMany({
       include: {
         author: { select: { id: true, username: true, profilePicture: true } },
@@ -76,6 +89,8 @@ router.get('/', async (req, res) => {
       orderBy: { createdAt: 'desc' },
       take: 20
     });
+
+    feedCache = { data: posts, expires: Date.now() + 15 * 1000 };
     res.json(posts);
   } catch (err) {
     console.error(err);
@@ -306,6 +321,7 @@ router.post('/', authenticateToken, async (req, res) => {
       }
     });
     
+    feedCache = { data: null, expires: 0 };
     return res.json({ success: true, post: fullPost });
   } catch (err) {
     console.error(err);
@@ -364,6 +380,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     await prisma.savedPost.deleteMany({ where: { postId } });
     await prisma.reaction.deleteMany({ where: { postId } });
     await prisma.post.delete({ where: { id: postId } });
+    feedCache = { data: null, expires: 0 };
     return res.json({ success: true, message: 'Post deleted.' });
   } catch (err) {
     console.error(err);
