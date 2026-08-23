@@ -20,7 +20,7 @@ jobs:
             git pull origin main
             cd "Aurora socials"
             npm install
-            VITE_API_URL=http://${{ secrets.EC2_HOST }} npx vite build
+            VITE_API_URL=https://aurorasocials.social npx vite build
             cd server
             npm install
             npx prisma db push
